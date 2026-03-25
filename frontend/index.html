@@ -628,8 +628,21 @@ async function callAI(endpoint, body) {
   const key = localStorage.getItem('rm_gemini_key') || GEMINI_API_KEY;
   if (!key) { toast('Add Gemini API key in Settings to enable AI ✨', 'info'); return null; }
   const text = await callGeminiDirect(prompt);
+  console.log('AI raw response:', text);
   if (!text) { toast('Gemini API error — check your key in Settings', 'error'); return null; }
-  try { return JSON.parse(text.replace(/```json|```/g,'').trim()); } catch(e) { return null; }
+  try {
+    // Strip markdown, find JSON object
+    let clean = text.replace(/```json|```/g,'').trim();
+    // Extract JSON if wrapped in text
+    const jsonMatch = clean.match(/\{[\s\S]*\}/);
+    if (jsonMatch) clean = jsonMatch[0];
+    const parsed = JSON.parse(clean);
+    console.log('AI parsed result:', parsed);
+    return parsed;
+  } catch(e) {
+    console.error('JSON parse failed:', e, 'Raw:', text);
+    return null;
+  }
 }
 
 async function fetchDigest(userId) {
@@ -1266,20 +1279,27 @@ async function doSnooze(mins) {
 // Natural language parse → fill modal form
 async function runAIParse() {
   const text = document.getElementById('aiNlInput').value.trim();
-  if (!text) return;
+  if (!text) { toast('Please type something first!', 'info'); return; }
   const btn = document.getElementById('aiParseBtn');
-  btn.disabled=true; btn.textContent='✨ Parsing...';
-  const result = await callAI('/api/ai/parse', { text, userId:currentUser.id });
-  btn.disabled=false; btn.textContent='✨ Parse';
-  if (!result) return;
-  if(result.title) document.getElementById('fTitle').value=result.title;
-  if(result.desc) document.getElementById('fDesc').value=result.desc;
-  if(result.date) document.getElementById('fDate').value=result.date;
-  if(result.time) document.getElementById('fTime').value=result.time;
-  if(result.priority) document.getElementById('fPriority').value=result.priority;
-  if(result.recur) document.getElementById('fRecur').value=result.recur;
-  document.getElementById('aiNlInput').value='';
-  toast('✨ Form filled by AI!','success');
+  btn.disabled=true; btn.textContent='⏳ Parsing...';
+  try {
+    const result = await callAI('/api/ai/parse', { text, userId:currentUser?.id });
+    btn.disabled=false; btn.textContent='✨ Parse';
+    console.log('Parse result:', result);
+    if (!result) { toast('AI could not parse — try rephrasing', 'error'); return; }
+    if(result.title) document.getElementById('fTitle').value = result.title;
+    if(result.desc) document.getElementById('fDesc').value = result.desc;
+    if(result.date) document.getElementById('fDate').value = result.date;
+    if(result.time) document.getElementById('fTime').value = result.time;
+    if(result.priority) document.getElementById('fPriority').value = result.priority;
+    if(result.recur) document.getElementById('fRecur').value = result.recur;
+    document.getElementById('aiNlInput').value = '';
+    toast('✨ Form filled by AI! Check and save.', 'success');
+  } catch(e) {
+    btn.disabled=false; btn.textContent='✨ Parse';
+    console.error('Parse error:', e);
+    toast('AI parse failed: ' + e.message, 'error');
+  }
 }
 
 // Quick add from reminders list page
