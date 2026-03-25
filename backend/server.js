@@ -10,6 +10,12 @@ const nodemailer = require('nodemailer');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { createClient } = require('@supabase/supabase-js');
 const cors = require('cors');
+const crypto = require('crypto');
+
+// Hash password same way as frontend
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password + 'remindme_salt_2025').digest('hex');
+}
 
 const app = express();
 app.use(cors());
@@ -150,8 +156,15 @@ app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date().toISO
 // Auth
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
-  const { data, error } = await supabase.from('users').select('*').eq('username', username).eq('password', password).single();
-  if (error || !data) return res.status(401).json({ error: 'Invalid credentials' });
+  const hashed = hashPassword(password);
+  // Try hashed first, fallback to plain
+  let { data } = await supabase.from('users').select('*').eq('username', username).eq('password', hashed).single();
+  if (!data) {
+    const res2 = await supabase.from('users').select('*').eq('username', username).eq('password', password).single();
+    if (!res2.data) return res.status(401).json({ error: 'Invalid credentials' });
+    data = res2.data;
+    await supabase.from('users').update({ password: hashed }).eq('id', data.id);
+  }
   const { password: _, ...safe } = data;
   res.json({ user: safe });
 });
@@ -159,7 +172,7 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/register', async (req, res) => {
   const { username, password, name } = req.body;
   if (!username || !password || !name) return res.status(400).json({ error: 'Missing fields' });
-  const newUser = { id: 'u_' + Date.now(), username, password, name, role: 'user' };
+  const newUser = { id: 'u_' + Date.now(), username, password: hashPassword(password), name, role: 'user' };
   const { error } = await supabase.from('users').insert(newUser);
   if (error) return res.status(409).json({ error: 'Username already taken' });
   const { password: _, ...safe } = newUser;
