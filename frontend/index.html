@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RemindMe — Smart Reminder Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f0f4f8;--bg2:#e8eef6;--white:#ffffff;
+  --navy:#0f2045;--navy2:#162d5a;--navy3:#1e3a6e;
+  --blue:#2563eb;--blueLight:#eff4ff;--blueMid:#c7d9ff;
+  --green:#059669;--greenLight:#ecfdf5;
+  --red:#dc2626;--redLight:#fef2f2;
+  --amber:#d97706;--amberLight:#fffbeb;
+  --purple:#7c3aed;--purpleLight:#f5f3ff;
+  --text:#0f2045;--textMid:#374151;--textMuted:#6b7280;--textLight:#9ca3af;
+  --border:#dde4ef;
+  --shadow:0 1px 3px rgba(15,32,69,.08),0 4px 16px rgba(15,32,69,.06);
+  --shadowMd:0 4px 12px rgba(15,32,69,.12),0 12px 40px rgba(15,32,69,.08);
+  --shadowLg:0 8px 32px rgba(15,32,69,.16);
+  --radius:14px;--radius-sm:9px;
+  --font:'Outfit',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
+input,select,textarea,button{font-family:var(--font)}
+
+/* ── CONFIG BANNER ── */
+.config-banner{background:var(--amber);color:white;text-align:center;padding:10px 16px;font-size:13px;font-weight:600;display:none}
+.config-banner a{color:white;text-decoration:underline;cursor:pointer}
+
+/* ── AUTH ── */
+#authScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f2045 0%,#1e3a6e 50%,#2563eb 100%);padding:20px;position:relative;overflow:hidden}
+#authScreen::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.auth-card{background:var(--white);border-radius:24px;padding:48px 40px;width:100%;max-width:420px;box-shadow:var(--shadowLg);position:relative;animation:fadeUp .5s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.auth-logo{text-align:center;margin-bottom:32px}
+.auth-logo-icon{width:64px;height:64px;background:linear-gradient(135deg,var(--navy),var(--blue));border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px}
+.auth-logo h1{font-size:26px;font-weight:800;color:var(--navy);letter-spacing:-.5px}
+.auth-logo p{font-size:14px;color:var(--textMuted);margin-top:4px}
+.auth-tab-bar{display:flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:28px;gap:4px}
+.auth-tab{flex:1;padding:9px;border-radius:7px;border:none;background:transparent;font-size:14px;font-weight:600;color:var(--textMuted);cursor:pointer;transition:all .2s}
+.auth-tab.active{background:var(--white);color:var(--navy);box-shadow:var(--shadow)}
+.form-group{margin-bottom:18px}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--textMid);margin-bottom:7px}
+.form-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color .2s,box-shadow .2s}
+.form-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.btn-primary{width:100%;padding:13px;background:linear-gradient(135deg,var(--navy),var(--blue));color:white;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(37,99,235,.35)}
+.auth-hint{text-align:center;font-size:12px;color:var(--textLight);margin-top:16px}
+.auth-hint span{background:var(--blueLight);color:var(--blue);padding:2px 8px;border-radius:4px;font-family:var(--mono);font-size:11px}
+
+/* ── APP LAYOUT ── */
+#appScreen{display:none;min-height:100vh}
+.app-layout{display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{width:256px;background:var(--navy);color:white;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.sidebar-header{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.logo-row{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.logo-icon{width:38px;height:38px;background:var(--blue);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-name{font-size:18px;font-weight:800;letter-spacing:-.3px}
+.user-pill{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.08);border-radius:10px;padding:10px 12px}
+.user-avatar{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:11px;color:rgba(255,255,255,.45)}
+.sidebar-nav{padding:16px 12px;flex:1;overflow-y:auto}
+.nav-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.3);padding:0 10px;margin:16px 0 6px}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;cursor:pointer;color:rgba(255,255,255,.6);font-size:14px;font-weight:500;transition:all .18s;border:none;background:transparent;width:100%;text-align:left;margin-bottom:2px}
+.nav-item:hover{background:rgba(255,255,255,.08);color:white}
+.nav-item.active{background:var(--blue);color:white}
+.nav-item .ni{font-size:16px;width:20px;text-align:center}
+.nav-badge{margin-left:auto;background:rgba(255,255,255,.2);color:white;font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 7px;border-radius:20px}
+.nav-item.active .nav-badge{background:rgba(255,255,255,.3)}
+.sidebar-footer{padding:16px 12px;border-top:1px solid rgba(255,255,255,.08)}
+.clock-box{background:rgba(255,255,255,.06);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.clock-time{font-family:var(--mono);font-size:20px;font-weight:600;color:white}
+.clock-date{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
+.logout-btn{width:100%;padding:10px 12px;background:rgba(220,38,38,.12);color:rgba(255,255,255,.6);border:1px solid rgba(220,38,38,.2);border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:8px}
+.logout-btn:hover{background:rgba(220,38,38,.2);color:white}
+
+/* ── MAIN ── */
+.main-content{margin-left:256px;flex:1;min-height:100vh}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
+.hamburger{display:none;width:38px;height:38px;border:1.5px solid var(--border);border-radius:9px;background:transparent;cursor:pointer;font-size:16px;color:var(--text);align-items:center;justify-content:center}
+.page-title{font-size:20px;font-weight:700;color:var(--navy);flex:1}
+.topbar-btn{padding:9px 18px;background:var(--navy);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.topbar-btn:hover{background:var(--navy2);transform:translateY(-1px);box-shadow:var(--shadow)}
+.topbar-btn.blue{background:var(--blue)}
+.topbar-btn.blue:hover{background:#1d4ed8}
+.page-body{padding:28px}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);transition:transform .18s,box-shadow .18s;position:relative;overflow:hidden}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadowMd)}
+.stat-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.stat-icon-wrap{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.stat-icon-wrap.blue{background:var(--blueLight)}.stat-icon-wrap.green{background:var(--greenLight)}.stat-icon-wrap.amber{background:var(--amberLight)}.stat-icon-wrap.red{background:var(--redLight)}
+.stat-value{font-size:32px;font-weight:800;color:var(--navy);font-family:var(--mono)}
+.stat-label{font-size:13px;color:var(--textMuted);font-weight:500;margin-top:2px}
+
+/* ── SECTION CARDS ── */
+.section-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px}
+.section-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.section-title{font-size:15px;font-weight:700;color:var(--navy)}
+.section-body{padding:16px 22px}
+
+/* ── AI DIGEST CARD ── */
+.digest-card{background:linear-gradient(135deg,var(--navy) 0%,var(--navy3) 100%);border-radius:var(--radius);padding:24px;margin-bottom:20px;position:relative;overflow:hidden}
+.digest-card::before{content:'✨';position:absolute;right:20px;top:20px;font-size:32px;opacity:.2}
+.digest-title{font-size:13px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.digest-text{font-size:15px;color:white;line-height:1.6;font-weight:400}
+.digest-loading{color:rgba(255,255,255,.5);font-size:14px;display:flex;align-items:center;gap:8px}
+.digest-btn{margin-top:14px;padding:8px 16px;background:rgba(255,255,255,.12);color:white;border:1px solid rgba(255,255,255,.2);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;font-family:var(--font)}
+.digest-btn:hover{background:rgba(255,255,255,.2)}
+
+/* ── AI INPUT ── */
+.ai-input-wrap{background:linear-gradient(135deg,var(--purpleLight),var(--blueLight));border:1.5px solid var(--blueMid);border-radius:var(--radius);padding:18px 22px;margin-bottom:20px}
+.ai-input-label{font-size:12px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.ai-input-row{display:flex;gap:10px}
+.ai-input{flex:1;padding:11px 14px;border:1.5px solid var(--blueMid);border-radius:var(--radius-sm);font-size:14px;background:white;color:var(--text);outline:none;transition:border-color .2s}
+.ai-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.ai-parse-btn{padding:11px 18px;background:var(--purple);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .18s;font-family:var(--font)}
+.ai-parse-btn:hover{background:#6d28d9}
+.ai-parse-btn:disabled{opacity:.5;cursor:not-allowed}
+.ai-hint{font-size:12px;color:var(--textMuted);margin-top:8px}
+
+/* ── FILTERS ── */
+.filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filter-chip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--textMuted);font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;font-family:var(--font)}
+.filter-chip:hover{border-color:var(--blue);color:var(--blue)}
+.filter-chip.active{background:var(--blueLight);border-color:var(--blue);color:var(--blue)}
+.search-wrap{display:flex;align-items:center;gap:8px;border:1.5px solid var(--border);border-radius:20px;padding:6px 14px;background:var(--bg);margin-left:auto}
+.search-wrap input{background:transparent;border:none;outline:none;font-size:13px;color:var(--text);width:150px}
+.search-wrap input::placeholder{color:var(--textLight)}
+
+/* ── REMINDER CARDS ── */
+.reminder-list{display:flex;flex-direction:column;gap:10px}
+.rem-card{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:16px 18px;display:flex;align-items:flex-start;gap:14px;transition:all .2s;background:var(--white);position:relative;animation:slideIn .25s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.rem-card:hover{border-color:var(--blueMid);box-shadow:var(--shadow)}
+.rem-card.completed{opacity:.5;background:var(--bg)}
+.rem-card.completed .rem-title{text-decoration:line-through;color:var(--textMuted)}
+.priority-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.priority-dot.high{background:var(--red);box-shadow:0 0 6px rgba(220,38,38,.4)}
+.priority-dot.medium{background:var(--amber);box-shadow:0 0 6px rgba(217,119,6,.3)}
+.priority-dot.low{background:var(--green);box-shadow:0 0 6px rgba(5,150,105,.3)}
+.rem-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);background:transparent;cursor:pointer;flex-shrink:0;margin-top:2px;transition:all .18s;display:flex;align-items:center;justify-content:center;color:transparent;font-size:10px}
+.rem-check:hover{border-color:var(--green);color:var(--green)}
+.rem-check.done{background:var(--green);border-color:var(--green);color:white}
+.rem-body{flex:1;min-width:0}
+.rem-title{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px}
+.rem-desc{font-size:12px;color:var(--textMuted);margin-bottom:10px;line-height:1.5}
+.rem-tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px}
+.tag.blue{background:var(--blueLight);color:var(--blue)}
+.tag.green{background:var(--greenLight);color:var(--green)}
+.tag.red{background:var(--redLight);color:var(--red)}
+.tag.amber{background:var(--amberLight);color:var(--amber)}
+.tag.navy{background:var(--bg2);color:var(--navy2)}
+.tag.purple{background:var(--purpleLight);color:var(--purple)}
+.rem-actions{display:flex;gap:5px;flex-shrink:0}
+.icon-btn{width:30px;height:30px;border-radius:7px;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:13px;color:var(--textMuted);transition:all .18s;display:flex;align-items:center;justify-content:center}
+.icon-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blueLight)}
+.icon-btn.danger:hover{border-color:var(--red);color:var(--red);background:var(--redLight)}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:48px 20px;color:var(--textMuted)}
+.empty-icon{font-size:44px;margin-bottom:12px;opacity:.35}
+.empty p{font-size:14px}
+
+/* ── HISTORY ── */
+.hist-item{display:flex;align-items:center;gap:14px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;background:var(--white)}
+.hist-icon{font-size:18px}
+.hist-body{flex:1}
+.hist-title{font-size:13px;font-weight:500;color:var(--text)}
+.hist-time{font-size:11px;color:var(--textLight);font-family:var(--mono);margin-top:2px}
+.hist-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
+.hist-badge.added{background:var(--blueLight);color:var(--blue)}
+.hist-badge.done{background:var(--greenLight);color:var(--green)}
+.hist-badge.snoozed{background:var(--amberLight);color:var(--amber)}
+.hist-badge.deleted{background:var(--redLight);color:var(--red)}
+.hist-badge.edited{background:var(--purpleLight);color:var(--purple)}
+
+/* ── CONTACTS ── */
+.contacts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.contact-card{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:16px 18px;background:var(--white);transition:all .18s}
+.contact-card:hover{border-color:var(--blueMid);box-shadow:var(--shadow)}
+.contact-name{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.contact-detail{font-size:12px;color:var(--textMuted);display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.contact-actions{display:flex;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+
+/* ── USERS TABLE ── */
+.user-table{width:100%;border-collapse:collapse;min-width:500px}
+.user-table th{text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--textMuted);padding:10px 14px;border-bottom:1.5px solid var(--border)}
+.user-table td{padding:12px 14px;font-size:13px;border-bottom:1px solid var(--border);color:var(--textMid);vertical-align:middle}
+.user-table tr:last-child td{border-bottom:none}
+.user-table tr:hover td{background:var(--bg)}
+.role-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
+.role-badge.admin{background:var(--blueLight);color:var(--blue)}
+.role-badge.user{background:var(--bg2);color:var(--navy2)}
+
+/* ── LOGS TABLE ── */
+.log-item{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px}
+.log-item:last-child{border-bottom:none}
+.log-type{padding:2px 8px;border-radius:4px;font-weight:700;text-transform:uppercase;font-size:10px;white-space:nowrap}
+.log-type.email{background:var(--blueLight);color:var(--blue)}
+.log-type.whatsapp{background:var(--greenLight);color:var(--green)}
+.log-type.reminder{background:var(--amberLight);color:var(--amber)}
+.log-type.error{background:var(--redLight);color:var(--red)}
+.log-msg{flex:1;color:var(--textMid)}
+.log-time{color:var(--textLight);font-family:var(--mono);white-space:nowrap}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(15,32,69,.45);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .22s}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal-box{background:var(--white);border-radius:20px;padding:30px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;box-shadow:var(--shadowLg);transform:translateY(16px);transition:transform .22s}
+.modal-bg.open .modal-box{transform:translateY(0)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.modal-title{font-size:18px;font-weight:700;color:var(--navy)}
+.modal-close{width:32px;height:32px;border:1.5px solid var(--border);border-radius:8px;background:transparent;cursor:pointer;font-size:14px;color:var(--textMuted);transition:all .18s;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{border-color:var(--red);color:var(--red)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg{margin-bottom:16px}
+.fg.full{grid-column:1/-1}
+.label{display:block;font-size:12px;font-weight:600;color:var(--textMid);margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px}
+.inp{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color .18s,box-shadow .18s}
+.inp:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.sel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.sel option{background:white}
+.tarea{resize:vertical;min-height:72px}
+
+/* ── AI SUGGEST BOX ── */
+.suggest-box{background:var(--purpleLight);border:1px solid #ddd6fe;border-radius:8px;padding:12px 14px;margin-top:8px;display:none}
+.suggest-box.show{display:block}
+.suggest-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.suggest-text{font-size:13px;color:var(--purple);flex:1}
+.suggest-apply{padding:5px 12px;background:var(--purple);color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)}
+
+/* ── PLATFORM ── */
+.platform-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.plat-card{border:2px solid var(--border);border-radius:var(--radius-sm);padding:12px 8px;text-align:center;cursor:pointer;transition:all .18s;background:transparent;font-family:var(--font)}
+.plat-card:hover{border-color:var(--blue)}
+.plat-card.sel{border-color:var(--blue);background:var(--blueLight)}
+.plat-emoji{font-size:22px;margin-bottom:5px}
+.plat-name{font-size:11px;font-weight:700;color:var(--textMuted)}
+.plat-card.sel .plat-name{color:var(--blue)}
+
+/* ── CONTACT MULTISELECT ── */
+.contact-select-wrap{position:relative}
+.contact-chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border:1.5px solid var(--border);border-radius:var(--radius-sm);min-height:42px;cursor:pointer;background:var(--white);transition:border-color .18s}
+.contact-chips:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.chip{display:inline-flex;align-items:center;gap:5px;background:var(--blueLight);color:var(--blue);font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px}
+.chip-rm{background:none;border:none;cursor:pointer;color:var(--blue);font-size:13px;padding:0;line-height:1}
+.contact-dropdown{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadowMd);z-index:10;max-height:200px;overflow-y:auto;display:none}
+.contact-dropdown.open{display:block}
+.contact-opt{padding:10px 14px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s}
+.contact-opt:hover{background:var(--blueLight)}
+.contact-opt.selected{background:var(--blueLight);color:var(--blue);font-weight:600}
+.contact-opt-name{font-weight:600;color:var(--navy)}
+.contact-opt-detail{font-size:11px;color:var(--textMuted)}
+
+/* ── MODAL FOOTER ── */
+.modal-footer{display:flex;gap:10px;margin-top:20px;padding-top:18px;border-top:1px solid var(--border)}
+.btn-cancel{flex:1;padding:11px;border:1.5px solid var(--border);background:transparent;border-radius:var(--radius-sm);font-size:14px;font-weight:600;color:var(--textMuted);cursor:pointer;font-family:var(--font);transition:all .18s}
+.btn-cancel:hover{border-color:var(--text);color:var(--text)}
+.btn-save{flex:2;padding:11px;background:var(--navy);color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .18s}
+.btn-save:hover{background:var(--blue)}
+
+/* ── SNOOZE ── */
+.snooze-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.snooze-opt{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 12px;text-align:center;cursor:pointer;background:transparent;font-family:var(--font);transition:all .18s}
+.snooze-opt:hover{border-color:var(--blue);background:var(--blueLight)}
+.snooze-opt .s-icon{font-size:22px;margin-bottom:6px}
+.snooze-opt .s-label{font-size:13px;font-weight:700;color:var(--navy)}
+.snooze-opt .s-sub{font-size:11px;color:var(--textMuted);font-family:var(--mono)}
+
+/* ── LOADING SPINNER ── */
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner.dark{border:2px solid rgba(37,99,235,.2);border-top-color:var(--blue)}
+
+/* ── SIDEBAR OVERLAY ── */
+.sidebar-ov{display:none;position:fixed;inset:0;background:rgba(15,32,69,.5);z-index:99}
+
+/* ── TOAST ── */
+.toast-wrap{position:fixed;bottom:22px;right:22px;z-index:300;display:flex;flex-direction:column;gap:9px}
+.toast{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:13px 16px;display:flex;align-items:center;gap:11px;min-width:240px;box-shadow:var(--shadowMd);animation:toastIn .3s ease}
+@keyframes toastIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+.toast.success{border-left:3px solid var(--green)}
+.toast.error{border-left:3px solid var(--red)}
+.toast.info{border-left:3px solid var(--blue)}
+.toast-icon{font-size:16px}
+.toast-msg{font-size:13px;font-weight:500;color:var(--text)}
+
+/* ── SETTINGS PAGE ── */
+.settings-section{margin-bottom:24px}
+.settings-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--textMuted);margin-bottom:10px}
+.settings-row{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px}
+.settings-row-info{flex:1}
+.settings-row-label{font-size:14px;font-weight:600;color:var(--navy)}
+.settings-row-sub{font-size:12px;color:var(--textMuted);margin-top:2px}
+.settings-input{flex:2;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--mono);color:var(--text);background:var(--bg);outline:none}
+.settings-input:focus{border-color:var(--blue)}
+.settings-save-btn{padding:8px 16px;background:var(--blue);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-ov{display:block;opacity:0;pointer-events:none;transition:opacity .3s}
+  .sidebar-ov.open{opacity:1;pointer-events:all}
+  .main-content{margin-left:0}
+  .hamburger{display:flex}
+  .stats-grid{grid-template-columns:1fr 1fr;gap:12px}
+  .page-body{padding:16px}
+  .form-row{grid-template-columns:1fr}
+  .topbar{padding:14px 16px}
+  .ai-input-row{flex-direction:column}
+}
+@media(max-width:480px){
+  .stat-value{font-size:26px}
+  .modal-box{padding:22px 18px}
+  .contacts-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- CONFIG BANNER -->
+<div class="config-banner" id="configBanner">
+  ⚙️ Backend not configured — running in offline mode (localStorage). <a onclick="navTo('settings',null)">Configure backend URL →</a>
+</div>
+
+<!-- ── AUTH ── -->
+<div id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">⏰</div>
+      <h1>RemindMe</h1>
+      <p>Your smart AI-powered reminder hub</p>
+    </div>
+    <div class="auth-tab-bar">
+      <button class="auth-tab active" onclick="switchAuthTab('login',this)">Sign In</button>
+      <button class="auth-tab" onclick="switchAuthTab('register',this)">Create Account</button>
+    </div>
+    <div id="loginForm">
+      <div class="form-group"><label class="form-label">Username</label><input type="text" class="form-input" id="loginUser" placeholder="Enter username" onkeydown="if(event.key==='Enter')doLogin()" /></div>
+      <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="loginPass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()" /></div>
+      <button class="btn-primary" onclick="doLogin()">Sign In →</button>
+      <div class="auth-hint">Admin: <span>admin</span> / <span>admin</span></div>
+    </div>
+    <div id="registerForm" style="display:none">
+      <div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="regName" placeholder="Your name" /></div>
+      <div class="form-group"><label class="form-label">Username</label><input type="text" class="form-input" id="regUser" placeholder="Choose a username" /></div>
+      <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="regPass" placeholder="Choose a password" /></div>
+      <button class="btn-primary" onclick="doRegister()">Create Account →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="appScreen">
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-row"><div class="logo-icon">⏰</div><span class="logo-name">RemindMe</span></div>
+        <div class="user-pill">
+          <div class="user-avatar" id="sidebarAvatar">U</div>
+          <div class="user-info"><div class="user-name" id="sidebarName">User</div><div class="user-role" id="sidebarRole">Member</div></div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Menu</div>
+        <button class="nav-item active" onclick="navTo('dashboard',this)"><span class="ni">📊</span>Dashboard</button>
+        <button class="nav-item" onclick="navTo('reminders',this)"><span class="ni">📋</span>Reminders<span class="nav-badge" id="nb_all">0</span></button>
+        <button class="nav-item" onclick="navTo('pending',this)"><span class="ni">⏳</span>Pending<span class="nav-badge" id="nb_pending">0</span></button>
+        <button class="nav-item" onclick="navTo('completed',this)"><span class="ni">✅</span>Completed</button>
+        <button class="nav-item" onclick="navTo('history',this)"><span class="ni">🗂️</span>History</button>
+        <div class="nav-section-label">Settings</div>
+        <button class="nav-item" onclick="navTo('contacts',this)"><span class="ni">📱</span>Contacts</button>
+        <button class="nav-item" onclick="navTo('settings',this)"><span class="ni">⚙️</span>Settings</button>
+        <div id="adminNav" style="display:none">
+          <div class="nav-section-label">Admin</div>
+          <button class="nav-item" onclick="navTo('users',this)"><span class="ni">👥</span>Manage Users</button>
+          <button class="nav-item" onclick="navTo('allreminders',this)"><span class="ni">🌐</span>All Reminders</button>
+          <button class="nav-item" onclick="navTo('logs',this)"><span class="ni">📡</span>System Logs</button>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="clock-box"><div class="clock-time" id="clockEl">--:--</div><div class="clock-date" id="dateEl">---</div></div>
+        <button class="logout-btn" onclick="doLogout()">🚪 Sign Out</button>
+      </div>
+    </aside>
+    <div class="sidebar-ov" id="sidebarOv" onclick="closeSidebar()"></div>
+    <div class="main-content">
+      <div class="topbar">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <div class="page-title" id="pageTitle">Dashboard</div>
+        <div id="topbarActions"></div>
+      </div>
+      <div class="page-body" id="pageBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── REMINDER MODAL ── -->
+<div class="modal-bg" id="reminderModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="reminderModalTitle">New Reminder</div>
+      <button class="modal-close" onclick="closeReminderModal()">✕</button>
+    </div>
+    <!-- AI Natural Language Input -->
+    <div class="ai-input-wrap">
+      <div class="ai-input-label">✨ AI Smart Fill</div>
+      <div class="ai-input-row">
+        <input type="text" class="ai-input" id="aiNlInput" placeholder='e.g. "Call dentist this Friday at 3pm, high priority"' />
+        <button class="ai-parse-btn" id="aiParseBtn" onclick="runAIParse()">✨ Parse</button>
+      </div>
+      <div class="ai-hint">Type naturally — AI will fill the form for you</div>
+    </div>
+    <div class="form-row">
+      <div class="fg full">
+        <label class="label">Title *</label>
+        <input type="text" class="inp" id="fTitle" placeholder="e.g. Send project proposal" oninput="debounceSuggest(this.value)" />
+        <div class="suggest-box" id="suggestBox">
+          <div class="suggest-row">
+            <div class="suggest-text" id="suggestText"></div>
+            <button class="suggest-apply" onclick="applySuggestion()">Apply ✓</button>
+          </div>
+        </div>
+      </div>
+      <div class="fg full"><label class="label">Description</label><textarea class="inp tarea" id="fDesc" placeholder="Additional details..."></textarea></div>
+      <div class="fg"><label class="label">Date</label><input type="date" class="inp" id="fDate" /></div>
+      <div class="fg"><label class="label">Time</label><input type="time" class="inp" id="fTime" /></div>
+      <div class="fg">
+        <label class="label">Priority</label>
+        <select class="inp sel" id="fPriority"><option value="high">🔥 High</option><option value="medium" selected>⚡ Medium</option><option value="low">🟢 Low</option></select>
+      </div>
+      <div class="fg">
+        <label class="label">Recurring</label>
+        <select class="inp sel" id="fRecur"><option value="none">— None</option><option value="daily">🔁 Daily</option><option value="weekly">📅 Weekly</option><option value="monthly">🗓️ Monthly</option></select>
+      </div>
+      <div class="fg full">
+        <label class="label">Send Via</label>
+        <div class="platform-row">
+          <button class="plat-card sel" onclick="selectPlat('whatsapp',this)"><div class="plat-emoji">💬</div><div class="plat-name">WhatsApp</div></button>
+          <button class="plat-card" onclick="selectPlat('email',this)"><div class="plat-emoji">📧</div><div class="plat-name">Email</div></button>
+          <button class="plat-card" onclick="selectPlat('both',this)"><div class="plat-emoji">🔔</div><div class="plat-name">Both</div></button>
+        </div>
+      </div>
+      <div class="fg full">
+        <label class="label">Send To (Contacts)</label>
+        <div class="contact-select-wrap">
+          <div class="contact-chips" id="selectedChips" onclick="toggleContactDrop()">
+            <span style="color:var(--textLight);font-size:13px;padding:2px 4px" id="chipPlaceholder">Click to select contacts...</span>
+          </div>
+          <div class="contact-dropdown" id="contactDropdown"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeReminderModal()">Cancel</button>
+      <button class="btn-save" id="saveReminderBtn" onclick="saveReminder()">💾 Save Reminder</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONTACT MODAL ── -->
+<div class="modal-bg" id="contactModal">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-header"><div class="modal-title" id="contactModalTitle">Add Contact</div><button class="modal-close" onclick="closeContactModal()">✕</button></div>
+    <div class="fg"><label class="label">Name *</label><input type="text" class="inp" id="cName" placeholder="Contact name" /></div>
+    <div class="fg"><label class="label">WhatsApp Number</label><input type="text" class="inp" id="cPhone" placeholder="+91 98765 43210" /></div>
+    <div class="fg"><label class="label">Email Address</label><input type="email" class="inp" id="cEmail" placeholder="example@email.com" /></div>
+    <div class="modal-footer"><button class="btn-cancel" onclick="closeContactModal()">Cancel</button><button class="btn-save" onclick="saveContact()">💾 Save Contact</button></div>
+  </div>
+</div>
+
+<!-- ── SNOOZE MODAL ── -->
+<div class="modal-bg" id="snoozeModal">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-header"><div class="modal-title">⏰ Snooze Reminder</div><button class="modal-close" onclick="closeSnoozeModal()">✕</button></div>
+    <div class="snooze-grid">
+      <button class="snooze-opt" onclick="doSnooze(15)"><div class="s-icon">⏱️</div><div class="s-label">15 Minutes</div><div class="s-sub">Quick break</div></button>
+      <button class="snooze-opt" onclick="doSnooze(30)"><div class="s-icon">🕐</div><div class="s-label">30 Minutes</div><div class="s-sub">Half hour</div></button>
+      <button class="snooze-opt" onclick="doSnooze(60)"><div class="s-icon">🕑</div><div class="s-label">1 Hour</div><div class="s-sub">Take your time</div></button>
+      <button class="snooze-opt" onclick="doSnooze(1440)"><div class="s-icon">📅</div><div class="s-label">Tomorrow</div><div class="s-sub">Same time, next day</div></button>
+    </div>
+  </div>
+</div>
+
+<!-- ── USER MODAL ── -->
+<div class="modal-bg" id="userModal">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-header"><div class="modal-title">Add User</div><button class="modal-close" onclick="closeUserModal()">✕</button></div>
+    <div class="fg"><label class="label">Full Name *</label><input type="text" class="inp" id="uName" placeholder="Full name" /></div>
+    <div class="fg"><label class="label">Username *</label><input type="text" class="inp" id="uUsername" placeholder="Login username" /></div>
+    <div class="fg"><label class="label">Password *</label><input type="password" class="inp" id="uPass" placeholder="Password" /></div>
+    <div class="fg"><label class="label">Role</label><select class="inp sel" id="uRole"><option value="user">User</option><option value="admin">Admin</option></select></div>
+    <div class="modal-footer"><button class="btn-cancel" onclick="closeUserModal()">Cancel</button><button class="btn-save" onclick="saveUser()">💾 Add User</button></div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONFIG & STATE
+// ═══════════════════════════════════════════════════════
+let API_BASE = localStorage.getItem('rm_api_base') || '';
+let currentUser = null, currentTab = 'dashboard';
+let activeFilter = 'all', searchQ = '';
+let editingRemId = null, editingContactId = null, snoozeId = null;
+let selectedPlatform = 'whatsapp', selectedContactIds = [];
+let suggestTimeout = null, lastSuggestion = null;
+
+// ── Local DB (offline fallback) ──
+const LS = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } },
+  set: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
+};
+function initLocalDB() {
+  if (!LS.get('rm_users')) LS.set('rm_users', [{ id:'admin', username:'admin', password:'admin', name:'Administrator', role:'admin' }]);
+  if (!LS.get('rm_reminders')) LS.set('rm_reminders', []);
+  if (!LS.get('rm_history'))   LS.set('rm_history', []);
+  if (!LS.get('rm_contacts'))  LS.set('rm_contacts', {});
+}
+
+// ── API helper (with localStorage fallback) ──
+async function api(method, path, body) {
+  if (!API_BASE) return localFallback(method, path, body);
+  try {
+    const res = await fetch(API_BASE + path, {
+      method, headers: { 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return await res.json();
+  } catch(e) {
+    console.warn('API error, falling back to localStorage:', e.message);
+    return localFallback(method, path, body);
+  }
+}
+
+function localFallback(method, path, body) {
+  // Simple local router
+  if (path === '/api/login') {
+    const users = LS.get('rm_users') || [];
+    const u = users.find(x => x.username === body.username && x.password === body.password);
+    if (!u) throw new Error('Invalid credentials');
+    const { password, ...safe } = u; return { user: safe };
+  }
+  if (path === '/api/register') {
+    const users = LS.get('rm_users') || [];
+    if (users.find(x => x.username === body.username)) throw new Error('Username taken');
+    const u = { id:'u_'+Date.now(), ...body, role:'user' };
+    users.push(u); LS.set('rm_users', users);
+    const { password, ...safe } = u; return { user: safe };
+  }
+  if (path.startsWith('/api/reminders')) {
+    const all = LS.get('rm_reminders') || [];
+    if (method === 'GET') return currentUser.role === 'admin' ? all : all.filter(r => r.userId === currentUser.id);
+    if (method === 'POST') { const r = { ...body, id:'r_'+Date.now(), notified:false, createdAt:new Date().toISOString() }; all.push(r); LS.set('rm_reminders', all); return r; }
+    const id = path.split('/').pop();
+    if (method === 'PUT') { const i = all.findIndex(r=>r.id===id); all[i]={...all[i],...body}; LS.set('rm_reminders',all); return all[i]; }
+    if (method === 'DELETE') { LS.set('rm_reminders', all.filter(r=>r.id!==id)); return {ok:true}; }
+  }
+  if (path.startsWith('/api/contacts')) {
+    const all = LS.get('rm_contacts') || {};
+    const parts = path.split('/');
+    const uid = parts[3]; const cid = parts[4];
+    if (!uid) return {};
+    if (method === 'GET') return all[uid] || [];
+    if (method === 'POST') { if(!all[uid]) all[uid]=[]; const c={...body,id:'c_'+Date.now()}; all[uid].push(c); LS.set('rm_contacts',all); return c; }
+    if (method === 'PUT') { const list=all[uid]||[]; const i=list.findIndex(c=>c.id===cid); list[i]={...list[i],...body}; all[uid]=list; LS.set('rm_contacts',all); return list[i]; }
+    if (method === 'DELETE') { all[uid]=(all[uid]||[]).filter(c=>c.id!==cid); LS.set('rm_contacts',all); return {ok:true}; }
+  }
+  if (path === '/api/users') {
+    if (method === 'GET') return (LS.get('rm_users')||[]).map(({password,...u})=>u);
+    if (method === 'POST') {
+      const users = LS.get('rm_users')||[];
+      if (users.find(u=>u.username===body.username)) throw new Error('Username taken');
+      users.push({id:'u_'+Date.now(),...body}); LS.set('rm_users',users); return {ok:true};
+    }
+  }
+  if (path.startsWith('/api/users/')) {
+    const id = path.split('/').pop();
+    if (method === 'DELETE') {
+      LS.set('rm_users',(LS.get('rm_users')||[]).filter(u=>u.id!==id));
+      LS.set('rm_reminders',(LS.get('rm_reminders')||[]).filter(r=>r.userId!==id));
+      const c=LS.get('rm_contacts')||{}; delete c[id]; LS.set('rm_contacts',c);
+      return {ok:true};
+    }
+  }
+  return {};
+}
+
+// ── AI API (calls backend /api/ai/* routes) ──
+async function callAI(endpoint, body) {
+  if (!API_BASE) { toast('AI features require backend. Configure in Settings.', 'info'); return null; }
+  try {
+    const res = await fetch(API_BASE + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    return await res.json();
+  } catch(e) { toast('AI request failed', 'error'); return null; }
+}
+
+async function fetchDigest(userId) {
+  if (!API_BASE) return 'Connect backend in Settings to enable AI daily digest.';
+  try {
+    const res = await fetch(API_BASE + `/api/ai/digest/${userId}`);
+    const data = await res.json();
+    return data.digest;
+  } catch(e) { return 'Could not load digest.'; }
+}
+
+// ═══════════════════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════════════════
+function tick() {
+  const n = new Date();
+  const el = document.getElementById('clockEl');
+  const de = document.getElementById('dateEl');
+  if (el) el.textContent = n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  if (de) de.textContent = n.toLocaleDateString('en-IN',{weekday:'short',month:'short',day:'numeric'});
+}
+setInterval(tick, 1000);
+document.addEventListener('DOMContentLoaded', tick);
+
+// ═══════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════
+function switchAuthTab(tab, btn) {
+  document.querySelectorAll('.auth-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('loginForm').style.display = tab==='login' ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = tab==='register' ? 'block' : 'none';
+}
+
+async function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  try {
+    const data = await localFallback('POST', '/api/login', { username, password });
+    currentUser = data.user;
+    enterApp();
+  } catch(e) { toast('Invalid username or password', 'error'); }
+}
+
+async function doRegister() {
+  const name = document.getElementById('regName').value.trim();
+  const username = document.getElementById('regUser').value.trim();
+  const password = document.getElementById('regPass').value;
+  if (!name||!username||!password) { toast('Please fill all fields','error'); return; }
+  try {
+    const data = await localFallback('POST', '/api/register', { username, password, name });
+    currentUser = data.user;
+    toast('Account created! Welcome 🎉','success');
+    enterApp();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+function enterApp() {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  document.getElementById('sidebarAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+  document.getElementById('sidebarName').textContent = currentUser.name;
+  document.getElementById('sidebarRole').textContent = currentUser.role === 'admin' ? '⭐ Administrator' : 'Member';
+  document.getElementById('adminNav').style.display = currentUser.role === 'admin' ? 'block' : 'none';
+  if (!API_BASE) document.getElementById('configBanner').style.display = 'block';
+  currentTab = 'dashboard';
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  const first = document.querySelector('#sidebar .nav-item');
+  if (first) first.classList.add('active');
+  document.getElementById('pageTitle').textContent = 'Dashboard';
+  renderPage();
+  tick();
+}
+
+function doLogout() {
+  currentUser = null; currentTab = 'dashboard'; activeFilter = 'all'; searchQ = '';
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('configBanner').style.display = 'none';
+  const lu=document.getElementById('loginUser'); const lp=document.getElementById('loginPass');
+  if(lu) lu.value=''; if(lp) lp.value='';
+}
+
+// ═══════════════════════════════════════════════════════
+// SIDEBAR / NAV
+// ═══════════════════════════════════════════════════════
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOv').classList.toggle('open'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOv').classList.remove('open'); }
+
+function navTo(tab, el) {
+  currentTab = tab; closeSidebar();
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  if (el && el.classList) el.classList.add('active');
+  const titles = { dashboard:'Dashboard', reminders:'My Reminders', pending:'Pending Reminders',
+    completed:'Completed', history:'History', contacts:'Contacts', settings:'Settings',
+    users:'Manage Users', allreminders:'All Reminders', logs:'System Logs' };
+  document.getElementById('pageTitle').textContent = titles[tab] || tab;
+  renderPage();
+}
+
+function updateBadges() {
+  if (!currentUser) return;
+  getMyReminders().then(rems => {
+    const allEl = document.getElementById('nb_all');
+    const pendEl = document.getElementById('nb_pending');
+    if (allEl) allEl.textContent = rems.length;
+    if (pendEl) pendEl.textContent = rems.filter(r=>!r.completed).length;
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// DATA FETCHERS
+// ═══════════════════════════════════════════════════════
+async function getMyReminders() {
+  const all = await api('GET', `/api/reminders?userId=${currentUser.id}&role=${currentUser.role}`);
+  return (all||[]).filter(r => r.userId === currentUser.id);
+}
+async function getAllReminders() {
+  return await api('GET', `/api/reminders?userId=${currentUser.id}&role=admin`) || [];
+}
+async function getMyContacts() {
+  return await api('GET', `/api/contacts/${currentUser.id}`) || [];
+}
+
+// ═══════════════════════════════════════════════════════
+// PAGE RENDER
+// ═══════════════════════════════════════════════════════
+async function renderPage() {
+  const body = document.getElementById('pageBody');
+  const actions = document.getElementById('topbarActions');
+  actions.innerHTML = '';
+  body.innerHTML = '<div class="empty"><div class="spinner dark" style="width:28px;height:28px;margin:0 auto"></div></div>';
+
+  if (currentTab === 'dashboard') { await renderDashboard(body); }
+  else if (['reminders','pending','completed'].includes(currentTab)) {
+    actions.innerHTML = `<button class="topbar-btn blue" onclick="openReminderModal()">+ New Reminder</button>`;
+    await renderRemindersList(body);
+  }
+  else if (currentTab === 'history') { renderHistory(body); }
+  else if (currentTab === 'contacts') {
+    actions.innerHTML = `<button class="topbar-btn" onclick="openContactModal()">+ Add Contact</button>`;
+    await renderContacts(body);
+  }
+  else if (currentTab === 'settings') { renderSettings(body); }
+  else if (currentTab === 'users' && currentUser.role === 'admin') {
+    actions.innerHTML = `<button class="topbar-btn blue" onclick="openUserModal()">+ Add User</button>`;
+    await renderUsers(body);
+  }
+  else if (currentTab === 'allreminders' && currentUser.role === 'admin') { await renderAllReminders(body); }
+  else if (currentTab === 'logs' && currentUser.role === 'admin') { await renderLogs(body); }
+  updateBadges();
+}
+
+// ── Dashboard ──
+async function renderDashboard(body) {
+  const rems = await getMyReminders();
+  const total = rems.length, pending = rems.filter(r=>!r.completed).length;
+  const done = rems.filter(r=>r.completed).length, high = rems.filter(r=>r.priority==='high'&&!r.completed).length;
+  const upcoming = rems.filter(r=>!r.completed).sort((a,b)=>new Date(a.date+' '+a.time)-new Date(b.date+' '+b.time)).slice(0,5);
+
+  body.innerHTML = `
+  <div id="digestSection">
+    <div class="digest-card">
+      <div class="digest-title">✨ AI Daily Digest</div>
+      <div class="digest-text digest-loading"><span class="spinner"></span> Generating your daily summary...</div>
+      <button class="digest-btn" onclick="loadDigest()">🔄 Refresh</button>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-card-top"><div class="stat-icon-wrap blue">📋</div></div><div class="stat-value">${total}</div><div class="stat-label">Total Reminders</div></div>
+    <div class="stat-card"><div class="stat-card-top"><div class="stat-icon-wrap amber">⏳</div></div><div class="stat-value" style="color:var(--amber)">${pending}</div><div class="stat-label">Pending</div></div>
+    <div class="stat-card"><div class="stat-card-top"><div class="stat-icon-wrap green">✅</div></div><div class="stat-value" style="color:var(--green)">${done}</div><div class="stat-label">Completed</div></div>
+    <div class="stat-card"><div class="stat-card-top"><div class="stat-icon-wrap red">🔥</div></div><div class="stat-value" style="color:var(--red)">${high}</div><div class="stat-label">High Priority</div></div>
+  </div>
+  <div class="section-card">
+    <div class="section-head">
+      <div class="section-title">⏰ Upcoming Reminders</div>
+      <button class="topbar-btn blue" onclick="openReminderModal()" style="padding:7px 14px;font-size:12px">+ Add New</button>
+    </div>
+    <div class="section-body">
+      ${upcoming.length ? '<div class="reminder-list">' + upcoming.map(r=>remCardHTML(r)).join('') + '</div>' : '<div class="empty"><div class="empty-icon">🎉</div><p>All caught up! No pending reminders.</p></div>'}
+    </div>
+  </div>`;
+  loadDigest();
+}
+
+async function loadDigest() {
+  const el = document.querySelector('.digest-text');
+  if (!el) return;
+  el.innerHTML = '<span class="spinner"></span> Generating...';
+  const text = await fetchDigest(currentUser.id);
+  el.innerHTML = text;
+}
+
+// ── Reminders List ──
+async function renderRemindersList(body) {
+  let rems = await getMyReminders();
+  if (currentTab === 'pending') rems = rems.filter(r=>!r.completed);
+  if (currentTab === 'completed') rems = rems.filter(r=>r.completed);
+
+  body.innerHTML = `
+  <div class="ai-input-wrap">
+    <div class="ai-input-label">✨ AI Smart Add</div>
+    <div class="ai-input-row">
+      <input type="text" class="ai-input" id="aiQuickInput" placeholder='e.g. "Remind me to pay electricity bill on 30th at 10am"' />
+      <button class="ai-parse-btn" onclick="runAIQuickAdd()">✨ Add with AI</button>
+    </div>
+    <div class="ai-hint">AI will create a reminder from natural language and open the form pre-filled</div>
+  </div>
+  <div class="section-card">
+    <div class="section-head">
+      <div class="filter-row">
+        <button class="filter-chip ${activeFilter==='all'?'active':''}" onclick="setFilter('all',this)">All</button>
+        <button class="filter-chip ${activeFilter==='high'?'active':''}" onclick="setFilter('high',this)">🔥 High</button>
+        <button class="filter-chip ${activeFilter==='medium'?'active':''}" onclick="setFilter('medium',this)">⚡ Medium</button>
+        <button class="filter-chip ${activeFilter==='low'?'active':''}" onclick="setFilter('low',this)">🟢 Low</button>
+        <button class="filter-chip ${activeFilter==='whatsapp'?'active':''}" onclick="setFilter('whatsapp',this)">💬 WhatsApp</button>
+        <button class="filter-chip ${activeFilter==='email'?'active':''}" onclick="setFilter('email',this)">📧 Email</button>
+      </div>
+      <div class="search-wrap"><span style="color:var(--textLight)">🔍</span><input type="text" placeholder="Search..." value="${searchQ}" oninput="doSearch(this.value)" /></div>
+    </div>
+    <div class="section-body"><div id="remList">${renderFilteredRems(rems)}</div></div>
+  </div>`;
+}
+
+function renderFilteredRems(rems) {
+  let list = [...rems];
+  if (activeFilter !== 'all') {
+    if (['high','medium','low'].includes(activeFilter)) list = list.filter(r=>r.priority===activeFilter);
+    if (['whatsapp','email'].includes(activeFilter)) list = list.filter(r=>r.platform===activeFilter||r.platform==='both');
+  }
+  if (searchQ) { const q=searchQ.toLowerCase(); list=list.filter(r=>r.title.toLowerCase().includes(q)||(r.desc||'').toLowerCase().includes(q)); }
+  list.sort((a,b)=>{const p={high:0,medium:1,low:2}; return p[a.priority]-p[b.priority]||new Date(a.date+' '+a.time)-new Date(b.date+' '+b.time);});
+  if (!list.length) return '<div class="empty"><div class="empty-icon">🔕</div><p>No reminders match your filter.</p></div>';
+  return '<div class="reminder-list">' + list.map(r=>remCardHTML(r)).join('') + '</div>';
+}
+
+function remCardHTML(r) {
+  const pE={whatsapp:'💬',email:'📧',both:'🔔'};
+  const rE={daily:'🔁',weekly:'📅',monthly:'🗓️'};
+  const dt = r.date ? `${r.date}${r.time?' '+r.time:''}` : 'No date';
+  const contacts = LS.get('rm_contacts') || {};
+  const userContacts = contacts[currentUser.id] || [];
+  const selC = (r.contactIds||[]).map(id=>userContacts.find(c=>c.id===id)).filter(Boolean);
+  return `
+  <div class="rem-card ${r.completed?'completed':''}" id="rc_${r.id}">
+    <div class="priority-dot ${r.priority}"></div>
+    <button class="rem-check ${r.completed?'done':''}" onclick="toggleDone('${r.id}')">✓</button>
+    <div class="rem-body">
+      <div class="rem-title">${r.title}</div>
+      ${r.desc?`<div class="rem-desc">${r.desc}</div>`:''}
+      <div class="rem-tags">
+        <span class="tag blue">📅 ${dt}</span>
+        <span class="tag navy">${pE[r.platform]||'🔔'} ${r.platform}</span>
+        <span class="tag ${r.priority==='high'?'red':r.priority==='medium'?'amber':'green'}">${r.priority}</span>
+        ${r.recur&&r.recur!=='none'?`<span class="tag green">${rE[r.recur]} ${r.recur}</span>`:''}
+        ${selC.map(c=>`<span class="tag purple">👤 ${c.name}</span>`).join('')}
+      </div>
+    </div>
+    <div class="rem-actions">
+      <button class="icon-btn" title="Snooze" onclick="openSnooze('${r.id}')">😴</button>
+      <button class="icon-btn" title="Edit" onclick="editReminder('${r.id}')">✏️</button>
+      <button class="icon-btn danger" title="Delete" onclick="deleteReminder('${r.id}')">🗑️</button>
+    </div>
+  </div>`;
+}
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  refreshRemList();
+}
+function doSearch(q) { searchQ = q; refreshRemList(); }
+async function refreshRemList() {
+  const el = document.getElementById('remList'); if (!el) return;
+  let rems = await getMyReminders();
+  if (currentTab==='pending') rems=rems.filter(r=>!r.completed);
+  if (currentTab==='completed') rems=rems.filter(r=>r.completed);
+  el.innerHTML = renderFilteredRems(rems);
+}
+
+// ── History ──
+function renderHistory(body) {
+  const h = LS.get('rm_history') || [];
+  const mine = currentUser.role==='admin' ? h : h.filter(x=>x.userId===currentUser.id);
+  if (!mine.length) { body.innerHTML = '<div class="empty"><div class="empty-icon">🗂️</div><p>No history yet.</p></div>'; return; }
+  body.innerHTML = [...mine].reverse().map(x=>`
+    <div class="hist-item">
+      <div class="hist-icon">${x.icon}</div>
+      <div class="hist-body"><div class="hist-title">${x.title}</div><div class="hist-time">${x.time}</div></div>
+      <span class="hist-badge ${x.status}">${x.status}</span>
+    </div>`).join('');
+}
+
+function addHistory(icon, title, status) {
+  const h = LS.get('rm_history') || [];
+  h.unshift({ icon, title, status, time:new Date().toLocaleString('en-IN'), userId:currentUser.id });
+  if (h.length > 200) h.splice(200);
+  LS.set('rm_history', h);
+}
+
+// ── Contacts ──
+async function renderContacts(body) {
+  const contacts = await getMyContacts();
+  if (!contacts.length) { body.innerHTML = `<div class="empty" style="padding:60px 20px"><div class="empty-icon">📱</div><p>No contacts yet. Add contacts to quickly select them when creating reminders.</p></div>`; return; }
+  body.innerHTML = `<div class="contacts-grid">${contacts.map(c=>`
+    <div class="contact-card">
+      <div class="contact-name">👤 ${c.name}</div>
+      ${c.phone?`<div class="contact-detail"><span>💬</span>${c.phone}</div>`:''}
+      ${c.email?`<div class="contact-detail"><span>📧</span>${c.email}</div>`:''}
+      <div class="contact-actions">
+        <button class="icon-btn" onclick="editContact('${c.id}')">✏️</button>
+        <button class="icon-btn danger" onclick="deleteContact('${c.id}')">🗑️</button>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+// ── Settings ──
+function renderSettings(body) {
+  const saved = localStorage.getItem('rm_api_base') || '';
+  body.innerHTML = `
+  <div class="section-card">
+    <div class="section-head"><div class="section-title">⚙️ Backend Configuration</div></div>
+    <div class="section-body">
+      <div class="settings-section">
+        <div class="settings-label">Backend API URL</div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">API Base URL</div>
+            <div class="settings-row-sub">Your Railway/Render backend URL e.g. https://remindme.railway.app</div>
+          </div>
+          <input type="text" class="settings-input" id="apiUrlInput" value="${saved}" placeholder="https://your-backend.railway.app" />
+          <button class="settings-save-btn" onclick="saveApiUrl()">Save</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">How to set up the backend</div>
+        <div style="background:var(--bg);border-radius:10px;padding:16px 20px;font-size:13px;color:var(--textMid);line-height:1.8">
+          <strong>Step 1:</strong> Fork the RemindMe repo on GitHub<br>
+          <strong>Step 2:</strong> Add these GitHub Secrets (Settings → Secrets → Actions):<br>
+          <code style="background:var(--navy);color:#22d3a5;padding:2px 6px;border-radius:4px;font-size:12px">AISENSY_API_KEY</code>
+          <code style="background:var(--navy);color:#22d3a5;padding:2px 6px;border-radius:4px;font-size:12px">AISENSY_CAMPAIGN_NAME</code>
+          <code style="background:var(--navy);color:#22d3a5;padding:2px 6px;border-radius:4px;font-size:12px">OUTLOOK_EMAIL</code>
+          <code style="background:var(--navy);color:#22d3a5;padding:2px 6px;border-radius:4px;font-size:12px">OUTLOOK_PASSWORD</code>
+          <code style="background:var(--navy);color:#22d3a5;padding:2px 6px;border-radius:4px;font-size:12px">GEMINI_API_KEY</code>
+          <code style="background:var(--navy);color:#22d3a5;padding:2px 6px;border-radius:4px;font-size:12px">GH_PAT</code><br>
+          <strong>Step 3:</strong> Deploy backend to Railway → paste URL above<br>
+          <strong>Step 4:</strong> Enable GitHub Actions in your repo
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function saveApiUrl() {
+  const url = document.getElementById('apiUrlInput').value.trim().replace(/\/$/, '');
+  API_BASE = url;
+  localStorage.setItem('rm_api_base', url);
+  document.getElementById('configBanner').style.display = url ? 'none' : 'block';
+  toast(url ? 'Backend URL saved! ✅' : 'Cleared — running offline.', 'success');
+}
+
+// ── Admin: Users ──
+async function renderUsers(body) {
+  const users = await api('GET', '/api/users') || [];
+  const rems = await getAllReminders();
+  body.innerHTML = `
+  <div class="section-card" style="overflow:hidden">
+    <div class="section-head"><div class="section-title">👥 All Users (${users.length})</div></div>
+    <div style="overflow-x:auto">
+      <table class="user-table">
+        <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Reminders</th><th>Action</th></tr></thead>
+        <tbody>${users.map(u=>`<tr>
+          <td><strong style="color:var(--navy)">${u.name}</strong></td>
+          <td><span style="font-family:var(--mono);font-size:12px;background:var(--bg);padding:3px 8px;border-radius:5px">${u.username}</span></td>
+          <td><span class="role-badge ${u.role}">${u.role}</span></td>
+          <td><span class="tag blue" style="display:inline-flex">${rems.filter(r=>r.userId===u.id).length} reminders</span></td>
+          <td>${u.username!=='admin'?`<button class="icon-btn danger" onclick="deleteUser('${u.id}')">🗑️</button>`:`<span style="font-size:11px;color:var(--textLight)">🔒 Protected</span>`}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── Admin: All Reminders ──
+async function renderAllReminders(body) {
+  const rems = await getAllReminders();
+  const users = await api('GET', '/api/users') || [];
+  if (!rems.length) { body.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>No reminders in system.</p></div>'; return; }
+  const pE={whatsapp:'💬',email:'📧',both:'🔔'};
+  body.innerHTML = `<div class="section-card"><div class="section-body"><div class="reminder-list">
+    ${rems.map(r=>{
+      const u=users.find(x=>x.id===r.userId);
+      const dt=r.date?`${r.date}${r.time?' '+r.time:''}` :'No date';
+      return `<div class="rem-card ${r.completed?'completed':''}">
+        <div class="priority-dot ${r.priority}"></div>
+        <div class="rem-body">
+          <div class="rem-title">${r.title} <span style="font-size:11px;font-weight:400;color:var(--textMuted)">— ${u?.name||'Unknown'}</span></div>
+          ${r.desc?`<div class="rem-desc">${r.desc}</div>`:''}
+          <div class="rem-tags">
+            <span class="tag blue">📅 ${dt}</span>
+            <span class="tag navy">${pE[r.platform]||'🔔'} ${r.platform}</span>
+            <span class="tag ${r.priority==='high'?'red':r.priority==='medium'?'amber':'green'}">${r.priority}</span>
+            ${r.completed?'<span class="tag green">✅ Done</span>':''}
+            ${r.notified?'<span class="tag green">📤 Sent</span>':''}
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div></div></div>`;
+}
+
+// ── Admin: Logs ──
+async function renderLogs(body) {
+  if (!API_BASE) { body.innerHTML = '<div class="empty"><div class="empty-icon">📡</div><p>System logs are only available when backend is connected.</p></div>'; return; }
+  const logs = await api('GET', '/api/logs') || [];
+  if (!logs.length) { body.innerHTML = '<div class="empty"><div class="empty-icon">📡</div><p>No logs yet.</p></div>'; return; }
+  body.innerHTML = `<div class="section-card"><div style="max-height:600px;overflow-y:auto">
+    ${logs.slice(0,100).map(l=>`
+      <div class="log-item">
+        <span class="log-type ${l.type}">${l.type}</span>
+        <span class="log-msg">${l.message}${l.detail?` <span style="color:var(--textLight)">${l.detail}</span>`:''}</span>
+        <span class="log-time">${new Date(l.time).toLocaleString('en-IN')}</span>
+      </div>`).join('')}
+  </div></div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// REMINDER CRUD
+// ═══════════════════════════════════════════════════════
+async function openReminderModal(id) {
+  editingRemId = id || null; selectedContactIds = [];
+  let r = null;
+  if (id) {
+    const all = await getMyReminders();
+    r = all.find(x=>x.id===id);
+  }
+  document.getElementById('reminderModalTitle').textContent = id ? 'Edit Reminder' : 'New Reminder';
+  document.getElementById('fTitle').value = r?.title || '';
+  document.getElementById('fDesc').value = r?.desc || '';
+  document.getElementById('fDate').value = r?.date || '';
+  document.getElementById('fTime').value = r?.time || '';
+  document.getElementById('fPriority').value = r?.priority || 'medium';
+  document.getElementById('fRecur').value = r?.recur || 'none';
+  document.getElementById('aiNlInput').value = '';
+  document.getElementById('suggestBox').classList.remove('show');
+  selectedContactIds = r?.contactIds ? [...r.contactIds] : [];
+  selectPlat(r?.platform || 'whatsapp', null);
+  await renderChips(); await renderContactDropdown();
+  document.getElementById('reminderModal').classList.add('open');
+}
+function closeReminderModal() { document.getElementById('reminderModal').classList.remove('open'); }
+
+function selectPlat(p, el) {
+  selectedPlatform = p;
+  document.querySelectorAll('.plat-card').forEach(c=>c.classList.remove('sel'));
+  const idx = {whatsapp:0,email:1,both:2}[p];
+  document.querySelectorAll('.plat-card')[idx]?.classList.add('sel');
+}
+
+async function saveReminder() {
+  const title = document.getElementById('fTitle').value.trim();
+  if (!title) { toast('Please enter a title!','error'); return; }
+  const btn = document.getElementById('saveReminderBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  const rem = {
+    userId: currentUser.id, title,
+    desc: document.getElementById('fDesc').value.trim(),
+    date: document.getElementById('fDate').value,
+    time: document.getElementById('fTime').value,
+    priority: document.getElementById('fPriority').value,
+    recur: document.getElementById('fRecur').value,
+    platform: selectedPlatform,
+    contactIds: [...selectedContactIds],
+    completed: false
+  };
+  try {
+    if (editingRemId) {
+      await api('PUT', `/api/reminders/${editingRemId}`, rem);
+      addHistory('✏️',`Edited: ${title}`,'edited');
+      toast('Reminder updated!','success');
+    } else {
+      await api('POST', '/api/reminders', rem);
+      addHistory('➕',`Added: ${title}`,'added');
+      toast('Reminder saved! 🎉','success');
+    }
+    closeReminderModal(); renderPage();
+  } catch(e) { toast('Failed to save: '+e.message,'error'); }
+  btn.disabled=false; btn.textContent='💾 Save Reminder';
+}
+
+async function editReminder(id) { await openReminderModal(id); }
+
+async function deleteReminder(id) {
+  const all = await getMyReminders();
+  const r = all.find(x=>x.id===id);
+  await api('DELETE', `/api/reminders/${id}`);
+  addHistory('🗑️',`Deleted: ${r?.title}`,'deleted');
+  toast('Reminder deleted.','info');
+  renderPage();
+}
+
+async function toggleDone(id) {
+  const all = await getMyReminders();
+  const r = all.find(x=>x.id===id);
+  const updated = { ...r, completed: !r.completed };
+  await api('PUT', `/api/reminders/${id}`, updated);
+  addHistory(updated.completed?'✅':'🔄',`${updated.completed?'Completed':'Reopened'}: ${r.title}`,updated.completed?'done':'added');
+  toast(updated.completed?'Great job! ✅':'Reopened reminder.','success');
+  renderPage();
+}
+
+// ── Snooze ──
+function openSnooze(id) { snoozeId=id; document.getElementById('snoozeModal').classList.add('open'); }
+function closeSnoozeModal() { document.getElementById('snoozeModal').classList.remove('open'); snoozeId=null; }
+async function doSnooze(mins) {
+  const all = await getMyReminders();
+  const r = all.find(x=>x.id===snoozeId); if (!r) return;
+  const n=new Date(); n.setMinutes(n.getMinutes()+mins);
+  await api('PUT',`/api/reminders/${snoozeId}`,{...r,date:n.toISOString().split('T')[0],time:n.toTimeString().slice(0,5)});
+  addHistory('😴',`Snoozed: ${r.title}`,'snoozed');
+  closeSnoozeModal();
+  toast(`Snoozed for ${mins<60?mins+' min':(mins/60)+' hr'}`,'info');
+  renderPage();
+}
+
+// ═══════════════════════════════════════════════════════
+// AI FEATURES
+// ═══════════════════════════════════════════════════════
+
+// Natural language parse → fill modal form
+async function runAIParse() {
+  const text = document.getElementById('aiNlInput').value.trim();
+  if (!text) return;
+  const btn = document.getElementById('aiParseBtn');
+  btn.disabled=true; btn.textContent='✨ Parsing...';
+  const result = await callAI('/api/ai/parse', { text, userId:currentUser.id });
+  btn.disabled=false; btn.textContent='✨ Parse';
+  if (!result) return;
+  if(result.title) document.getElementById('fTitle').value=result.title;
+  if(result.desc) document.getElementById('fDesc').value=result.desc;
+  if(result.date) document.getElementById('fDate').value=result.date;
+  if(result.time) document.getElementById('fTime').value=result.time;
+  if(result.priority) document.getElementById('fPriority').value=result.priority;
+  if(result.recur) document.getElementById('fRecur').value=result.recur;
+  document.getElementById('aiNlInput').value='';
+  toast('✨ Form filled by AI!','success');
+}
+
+// Quick add from reminders list page
+async function runAIQuickAdd() {
+  const input = document.getElementById('aiQuickInput');
+  const text = input?.value?.trim(); if (!text) return;
+  await openReminderModal();
+  document.getElementById('aiNlInput').value = text;
+  await runAIParse();
+}
+
+// Debounced title suggestion
+function debounceSuggest(val) {
+  clearTimeout(suggestTimeout);
+  document.getElementById('suggestBox').classList.remove('show');
+  if (!val || val.length < 4 || !API_BASE) return;
+  suggestTimeout = setTimeout(()=>runSuggest(val), 1000);
+}
+
+async function runSuggest(title) {
+  const result = await callAI('/api/ai/suggest', { title });
+  if (!result) return;
+  lastSuggestion = result;
+  const box = document.getElementById('suggestBox');
+  const txt = document.getElementById('suggestText');
+  if (!box||!txt) return;
+  const pIcon = {high:'🔥',medium:'⚡',low:'🟢'}[result.priority]||'';
+  txt.innerHTML = `<strong>${pIcon} ${result.improvedTitle}</strong><br><span style="font-size:11px;color:var(--textMuted)">${result.priorityReason}</span>`;
+  box.classList.add('show');
+}
+
+function applySuggestion() {
+  if (!lastSuggestion) return;
+  document.getElementById('fTitle').value = lastSuggestion.improvedTitle;
+  document.getElementById('fPriority').value = lastSuggestion.priority;
+  document.getElementById('suggestBox').classList.remove('show');
+  toast('Suggestion applied ✓','success');
+}
+
+// ═══════════════════════════════════════════════════════
+// CONTACTS
+// ═══════════════════════════════════════════════════════
+async function openContactModal(id) {
+  editingContactId = id||null;
+  let c = null;
+  if (id) { const contacts=await getMyContacts(); c=contacts.find(x=>x.id===id); }
+  document.getElementById('contactModalTitle').textContent = id?'Edit Contact':'Add Contact';
+  document.getElementById('cName').value=c?.name||'';
+  document.getElementById('cPhone').value=c?.phone||'';
+  document.getElementById('cEmail').value=c?.email||'';
+  document.getElementById('contactModal').classList.add('open');
+}
+function closeContactModal() { document.getElementById('contactModal').classList.remove('open'); }
+
+async function saveContact() {
+  const name=document.getElementById('cName').value.trim();
+  const phone=document.getElementById('cPhone').value.trim();
+  const email=document.getElementById('cEmail').value.trim();
+  if (!name) { toast('Name is required','error'); return; }
+  if (editingContactId) {
+    await api('PUT',`/api/contacts/${currentUser.id}/${editingContactId}`,{name,phone,email});
+    toast('Contact updated!','success');
+  } else {
+    await api('POST',`/api/contacts/${currentUser.id}`,{name,phone,email});
+    toast('Contact added! 👤','success');
+  }
+  closeContactModal(); renderPage();
+}
+
+function editContact(id) { openContactModal(id); }
+async function deleteContact(id) {
+  await api('DELETE',`/api/contacts/${currentUser.id}/${id}`);
+  toast('Contact removed.','info'); renderPage();
+}
+
+// Contact multiselect
+function toggleContactDrop() { document.getElementById('contactDropdown').classList.toggle('open'); }
+document.addEventListener('click', e => { if(!e.target.closest('.contact-select-wrap')) document.getElementById('contactDropdown')?.classList.remove('open'); });
+
+async function renderContactDropdown() {
+  const contacts = await getMyContacts();
+  const dd=document.getElementById('contactDropdown'); if(!dd) return;
+  if (!contacts.length) { dd.innerHTML=`<div style="padding:14px;font-size:13px;color:var(--textMuted);text-align:center">No contacts yet. <a href="#" onclick="navTo('contacts',null);closeReminderModal()" style="color:var(--blue)">Add contacts →</a></div>`; return; }
+  dd.innerHTML=contacts.map(c=>`
+    <div class="contact-opt ${selectedContactIds.includes(c.id)?'selected':''}" onclick="toggleContactSel('${c.id}')">
+      <div><div class="contact-opt-name">${c.name}</div><div class="contact-opt-detail">${[c.phone,c.email].filter(Boolean).join(' · ')}</div></div>
+      <span style="margin-left:auto">${selectedContactIds.includes(c.id)?'✓':''}</span>
+    </div>`).join('');
+}
+
+async function toggleContactSel(id) {
+  const i=selectedContactIds.indexOf(id);
+  if(i>-1) selectedContactIds.splice(i,1); else selectedContactIds.push(id);
+  await renderChips(); await renderContactDropdown();
+}
+
+async function renderChips() {
+  const contacts = await getMyContacts();
+  const wrap=document.getElementById('selectedChips'); if(!wrap) return;
+  const ph=document.getElementById('chipPlaceholder');
+  wrap.querySelectorAll('.chip').forEach(c=>c.remove());
+  if (!selectedContactIds.length) { if(ph) ph.style.display='inline'; return; }
+  if(ph) ph.style.display='none';
+  selectedContactIds.forEach(id=>{
+    const c=contacts.find(x=>x.id===id); if(!c) return;
+    const chip=document.createElement('span'); chip.className='chip';
+    chip.innerHTML=`${c.name}<button class="chip-rm" onclick="event.stopPropagation();toggleContactSel('${c.id}')">×</button>`;
+    wrap.appendChild(chip);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// ADMIN: USERS
+// ═══════════════════════════════════════════════════════
+function openUserModal() { document.getElementById('userModal').classList.add('open'); }
+function closeUserModal() { document.getElementById('userModal').classList.remove('open'); }
+
+async function saveUser() {
+  const name=document.getElementById('uName').value.trim();
+  const username=document.getElementById('uUsername').value.trim();
+  const password=document.getElementById('uPass').value;
+  const role=document.getElementById('uRole').value;
+  if (!name||!username||!password) { toast('All fields required','error'); return; }
+  try {
+    await api('POST','/api/users',{name,username,password,role});
+    toast('User added!','success'); closeUserModal(); renderPage();
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function deleteUser(id) {
+  await api('DELETE',`/api/users/${id}`);
+  toast('User deleted.','info'); renderPage();
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+function toast(msg, type='info') {
+  const icons={success:'✅',error:'❌',info:'ℹ️'};
+  const el=document.createElement('div'); el.className=`toast ${type}`;
+  el.innerHTML=`<span class="toast-icon">${icons[type]}</span><span class="toast-msg">${msg}</span>`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(),3200);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+initLocalDB();
+</script>
+</body>
+</html>
