@@ -80,7 +80,7 @@ async function sendWhatsApp(phone, message, params = {}) {
 
 // ─── Gemini AI ────────────────────────────────────────────────
 function getGemini() {
-  return new GoogleGenerativeAI(process.env.GEMINI_API_KEY).getGenerativeModel({ model: 'gemini-1.5-flash' });
+  return new GoogleGenerativeAI(process.env.GEMINI_API_KEY).getGenerativeModel({ model: 'gemini-2.0-flash' });
 }
 
 // ─── CRON: Process due reminders ─────────────────────────────
