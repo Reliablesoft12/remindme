@@ -86,9 +86,11 @@ async function processDueReminders() {
 
   const due = (reminders || []).filter(r => {
     if (!r.date || !r.time) return false;
-    const dueAt = new Date(`${r.date}T${r.time}`);
+    // Treat reminder time as IST (UTC+5:30) since users enter local time
+    const dueAt = new Date(`${r.date}T${r.time}:00+05:30`);
     const diffMin = (now - dueAt) / 60000;
-    return diffMin >= 0 && diffMin <= 15;
+    console.log(`[CHECK] "${r.title}" due at ${dueAt.toISOString()} | now: ${now.toISOString()} | diff: ${diffMin.toFixed(1)} min`);
+    return diffMin >= 0 && diffMin <= 16;
   });
 
   console.log(`[CRON] ${due.length} due reminders at ${now.toISOString()}`);
