@@ -2,8 +2,8 @@ name: 🔔 Reminder Cron Job
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
-  workflow_dispatch:
+    - cron: '*/15 * * * *'  # Every 15 minutes
+  workflow_dispatch:         # Manual trigger
 
 jobs:
   process-reminders:
