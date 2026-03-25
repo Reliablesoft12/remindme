@@ -2,9 +2,8 @@ name: 🔔 Reminder Cron Job
 
 on:
   schedule:
-    # Runs every 15 minutes (GitHub Actions minimum interval)
     - cron: '*/15 * * * *'
-  workflow_dispatch: # Allow manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
   process-reminders:
@@ -15,8 +14,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GH_PAT }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -33,6 +30,8 @@ jobs:
         working-directory: backend
         env:
           RUN_CRON_ONLY: 'true'
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           AISENSY_API_KEY: ${{ secrets.AISENSY_API_KEY }}
           AISENSY_CAMPAIGN_NAME: ${{ secrets.AISENSY_CAMPAIGN_NAME }}
           OUTLOOK_EMAIL: ${{ secrets.OUTLOOK_EMAIL }}
@@ -40,11 +39,3 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: npm run cron
-
-      - name: Commit updated data files
-        run: |
-          git config --local user.email "remindme-bot@github.com"
-          git config --local user.name "RemindMe Bot"
-          git add backend/data/
-          git diff --staged --quiet || git commit -m "🔔 Auto: Updated reminder data [skip ci]"
-          git push

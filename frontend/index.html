@@ -509,109 +509,78 @@ input,select,textarea,button{font-family:var(--font)}
 </div>
 
 <div class="toast-wrap" id="toasts"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
 <script>
 // ═══════════════════════════════════════════════════════
-// CONFIG & STATE
+// SUPABASE CONFIG & STATE
 // ═══════════════════════════════════════════════════════
-let API_BASE = localStorage.getItem('rm_api_base') || '';
+const SUPABASE_URL = "https://ekmuocciihhpiqtcztwi.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_Rm32wokHPFsMU_JQC-j_Rg_ppzlDHw2";
+const API_BASE = localStorage.getItem("rm_api_base") || "";
+
+// Init Supabase client
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 let currentUser = null, currentTab = 'dashboard';
 let activeFilter = 'all', searchQ = '';
 let editingRemId = null, editingContactId = null, snoozeId = null;
 let selectedPlatform = 'whatsapp', selectedContactIds = [];
 let suggestTimeout = null, lastSuggestion = null;
 
-// ── Local DB (offline fallback) ──
+// ── Local history (only this stays in localStorage) ──
 const LS = {
   get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } },
   set: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
 };
 function initLocalDB() {
-  if (!LS.get('rm_users')) LS.set('rm_users', [{ id:'admin', username:'admin', password:'admin', name:'Administrator', role:'admin' }]);
-  if (!LS.get('rm_reminders')) LS.set('rm_reminders', []);
-  if (!LS.get('rm_history'))   LS.set('rm_history', []);
-  if (!LS.get('rm_contacts'))  LS.set('rm_contacts', {});
+  if (!LS.get('rm_history')) LS.set('rm_history', []);
 }
 
-// ── API helper (with localStorage fallback) ──
-async function api(method, path, body) {
-  if (!API_BASE) return localFallback(method, path, body);
-  try {
-    const res = await fetch(API_BASE + path, {
-      method, headers: { 'Content-Type': 'application/json' },
-      body: body ? JSON.stringify(body) : undefined
-    });
-    if (!res.ok) throw new Error(await res.text());
-    return await res.json();
-  } catch(e) {
-    console.warn('API error, falling back to localStorage:', e.message);
-    return localFallback(method, path, body);
-  }
+// ── Supabase DB helpers ──────────────────────────────────────
+
+async function doLogin(username, password) {
+  const { data, error } = await sb.from('users').select('*').eq('username', username).eq('password', password).single();
+  if (error || !data) throw new Error('Invalid credentials');
+  const { password: _, ...safe } = data;
+  return { user: safe };
 }
 
-function localFallback(method, path, body) {
-  // Simple local router
-  if (path === '/api/login') {
-    const users = LS.get('rm_users') || [];
-    const u = users.find(x => x.username === body.username && x.password === body.password);
-    if (!u) throw new Error('Invalid credentials');
-    const { password, ...safe } = u; return { user: safe };
-  }
-  if (path === '/api/register') {
-    const users = LS.get('rm_users') || [];
-    if (users.find(x => x.username === body.username)) throw new Error('Username taken');
-    const u = { id:'u_'+Date.now(), ...body, role:'user' };
-    users.push(u); LS.set('rm_users', users);
-    const { password, ...safe } = u; return { user: safe };
-  }
-  if (path.startsWith('/api/reminders')) {
-    const all = LS.get('rm_reminders') || [];
-    if (method === 'GET') return currentUser.role === 'admin' ? all : all.filter(r => r.userId === currentUser.id);
-    if (method === 'POST') { const r = { ...body, id:'r_'+Date.now(), notified:false, createdAt:new Date().toISOString() }; all.push(r); LS.set('rm_reminders', all); return r; }
-    const id = path.split('/').pop();
-    if (method === 'PUT') { const i = all.findIndex(r=>r.id===id); all[i]={...all[i],...body}; LS.set('rm_reminders',all); return all[i]; }
-    if (method === 'DELETE') { LS.set('rm_reminders', all.filter(r=>r.id!==id)); return {ok:true}; }
-  }
-  if (path.startsWith('/api/contacts')) {
-    const all = LS.get('rm_contacts') || {};
-    const parts = path.split('/');
-    const uid = parts[3]; const cid = parts[4];
-    if (!uid) return {};
-    if (method === 'GET') return all[uid] || [];
-    if (method === 'POST') { if(!all[uid]) all[uid]=[]; const c={...body,id:'c_'+Date.now()}; all[uid].push(c); LS.set('rm_contacts',all); return c; }
-    if (method === 'PUT') { const list=all[uid]||[]; const i=list.findIndex(c=>c.id===cid); list[i]={...list[i],...body}; all[uid]=list; LS.set('rm_contacts',all); return list[i]; }
-    if (method === 'DELETE') { all[uid]=(all[uid]||[]).filter(c=>c.id!==cid); LS.set('rm_contacts',all); return {ok:true}; }
-  }
-  if (path === '/api/users') {
-    if (method === 'GET') return (LS.get('rm_users')||[]).map(({password,...u})=>u);
-    if (method === 'POST') {
-      const users = LS.get('rm_users')||[];
-      if (users.find(u=>u.username===body.username)) throw new Error('Username taken');
-      users.push({id:'u_'+Date.now(),...body}); LS.set('rm_users',users); return {ok:true};
-    }
-  }
-  if (path.startsWith('/api/users/')) {
-    const id = path.split('/').pop();
-    if (method === 'DELETE') {
-      LS.set('rm_users',(LS.get('rm_users')||[]).filter(u=>u.id!==id));
-      LS.set('rm_reminders',(LS.get('rm_reminders')||[]).filter(r=>r.userId!==id));
-      const c=LS.get('rm_contacts')||{}; delete c[id]; LS.set('rm_contacts',c);
-      return {ok:true};
-    }
-  }
-  return {};
+async function doRegisterDB(username, password, name) {
+  const exists = await sb.from('users').select('id').eq('username', username).single();
+  if (exists.data) throw new Error('Username already taken');
+  const newUser = { id: 'u_' + Date.now(), username, password, name, role: 'user' };
+  const { error } = await sb.from('users').insert(newUser);
+  if (error) throw new Error('Registration failed');
+  const { password: _, ...safe } = newUser;
+  return { user: safe };
 }
 
-// ── AI API (calls backend /api/ai/* routes) ──
+async function getMyReminders() {
+  const { data } = await sb.from('reminders').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+  return data || [];
+}
+
+async function getAllReminders() {
+  const { data } = await sb.from('reminders').select('*').order('created_at', { ascending: false });
+  return data || [];
+}
+
+async function getMyContacts() {
+  const { data } = await sb.from('contacts').select('*').eq('user_id', currentUser.id);
+  return data || [];
+}
+
 async function callAI(endpoint, body) {
-  if (!API_BASE) { toast('AI features require backend. Configure in Settings.', 'info'); return null; }
+  if (!API_BASE) { toast('AI needs backend URL in Settings.', 'info'); return null; }
   try {
-    const res = await fetch(API_BASE + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const res = await fetch(API_BASE + endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     return await res.json();
   } catch(e) { toast('AI request failed', 'error'); return null; }
 }
 
 async function fetchDigest(userId) {
+
   if (!API_BASE) return 'Connect backend in Settings to enable AI daily digest.';
   try {
     const res = await fetch(API_BASE + `/api/ai/digest/${userId}`);
@@ -647,10 +616,16 @@ async function doLogin() {
   const username = document.getElementById('loginUser').value.trim();
   const password = document.getElementById('loginPass').value;
   try {
-    const data = await localFallback('POST', '/api/login', { username, password });
+    const data = await doLogin_db(username, password);
     currentUser = data.user;
     enterApp();
   } catch(e) { toast('Invalid username or password', 'error'); }
+}
+async function doLogin_db(username, password) {
+  const { data, error } = await sb.from('users').select('*').eq('username', username).eq('password', password).single();
+  if (error || !data) throw new Error('Invalid credentials');
+  const { password: _, ...safe } = data;
+  return { user: safe };
 }
 
 async function doRegister() {
@@ -659,8 +634,13 @@ async function doRegister() {
   const password = document.getElementById('regPass').value;
   if (!name||!username||!password) { toast('Please fill all fields','error'); return; }
   try {
-    const data = await localFallback('POST', '/api/register', { username, password, name });
-    currentUser = data.user;
+    const existing = await sb.from('users').select('id').eq('username', username).maybeSingle();
+    if (existing.data) { toast('Username already taken', 'error'); return; }
+    const newUser = { id: 'u_' + Date.now(), username, password, name, role: 'user' };
+    const { error } = await sb.from('users').insert(newUser);
+    if (error) throw new Error('Registration failed');
+    const { password: _, ...safe } = newUser;
+    currentUser = safe;
     toast('Account created! Welcome 🎉','success');
     enterApp();
   } catch(e) { toast(e.message, 'error'); }
@@ -974,7 +954,8 @@ function saveApiUrl() {
 
 // ── Admin: Users ──
 async function renderUsers(body) {
-  const users = await api('GET', '/api/users') || [];
+  const { data: usersData } = await sb.from('users').select('id, username, name, role, created_at');
+  const users = usersData || [];
   const rems = await getAllReminders();
   body.innerHTML = `
   <div class="section-card" style="overflow:hidden">
@@ -997,7 +978,8 @@ async function renderUsers(body) {
 // ── Admin: All Reminders ──
 async function renderAllReminders(body) {
   const rems = await getAllReminders();
-  const users = await api('GET', '/api/users') || [];
+  const { data: usersData2 } = await sb.from('users').select('id, username, name, role');
+  const users = usersData2 || [];
   if (!rems.length) { body.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>No reminders in system.</p></div>'; return; }
   const pE={whatsapp:'💬',email:'📧',both:'🔔'};
   body.innerHTML = `<div class="section-card"><div class="section-body"><div class="reminder-list">
@@ -1087,12 +1069,15 @@ async function saveReminder() {
     completed: false
   };
   try {
+    const dbRem = { id: editingRemId || 'r_'+Date.now(), user_id: currentUser.id, title: rem.title, description: rem.desc||'', date: rem.date, time: rem.time, priority: rem.priority, recur: rem.recur, platform: rem.platform, contact_ids: rem.contactIds||[], completed: false, notified: false };
     if (editingRemId) {
-      await api('PUT', `/api/reminders/${editingRemId}`, rem);
+      const { error } = await sb.from('reminders').update({ title:dbRem.title, description:dbRem.description, date:dbRem.date, time:dbRem.time, priority:dbRem.priority, recur:dbRem.recur, platform:dbRem.platform, contact_ids:dbRem.contact_ids }).eq('id', editingRemId);
+      if (error) throw error;
       addHistory('✏️',`Edited: ${title}`,'edited');
       toast('Reminder updated!','success');
     } else {
-      await api('POST', '/api/reminders', rem);
+      const { error } = await sb.from('reminders').insert(dbRem);
+      if (error) throw error;
       addHistory('➕',`Added: ${title}`,'added');
       toast('Reminder saved! 🎉','success');
     }
@@ -1106,7 +1091,7 @@ async function editReminder(id) { await openReminderModal(id); }
 async function deleteReminder(id) {
   const all = await getMyReminders();
   const r = all.find(x=>x.id===id);
-  await api('DELETE', `/api/reminders/${id}`);
+  await sb.from('reminders').delete().eq('id', id);
   addHistory('🗑️',`Deleted: ${r?.title}`,'deleted');
   toast('Reminder deleted.','info');
   renderPage();
@@ -1115,10 +1100,10 @@ async function deleteReminder(id) {
 async function toggleDone(id) {
   const all = await getMyReminders();
   const r = all.find(x=>x.id===id);
-  const updated = { ...r, completed: !r.completed };
-  await api('PUT', `/api/reminders/${id}`, updated);
-  addHistory(updated.completed?'✅':'🔄',`${updated.completed?'Completed':'Reopened'}: ${r.title}`,updated.completed?'done':'added');
-  toast(updated.completed?'Great job! ✅':'Reopened reminder.','success');
+  const newVal = !r.completed;
+  await sb.from('reminders').update({ completed: newVal }).eq('id', id);
+  addHistory(newVal?'✅':'🔄',`${newVal?'Completed':'Reopened'}: ${r.title}`,newVal?'done':'added');
+  toast(newVal?'Great job! ✅':'Reopened reminder.','success');
   renderPage();
 }
 
@@ -1129,7 +1114,9 @@ async function doSnooze(mins) {
   const all = await getMyReminders();
   const r = all.find(x=>x.id===snoozeId); if (!r) return;
   const n=new Date(); n.setMinutes(n.getMinutes()+mins);
-  await api('PUT',`/api/reminders/${snoozeId}`,{...r,date:n.toISOString().split('T')[0],time:n.toTimeString().slice(0,5)});
+  const newDate = n.toISOString().split('T')[0];
+  const newTime = n.toTimeString().slice(0,5);
+  await sb.from('reminders').update({ date: newDate, time: newTime, notified: false }).eq('id', snoozeId);
   addHistory('😴',`Snoozed: ${r.title}`,'snoozed');
   closeSnoozeModal();
   toast(`Snoozed for ${mins<60?mins+' min':(mins/60)+' hr'}`,'info');
@@ -1217,10 +1204,10 @@ async function saveContact() {
   const email=document.getElementById('cEmail').value.trim();
   if (!name) { toast('Name is required','error'); return; }
   if (editingContactId) {
-    await api('PUT',`/api/contacts/${currentUser.id}/${editingContactId}`,{name,phone,email});
+    await sb.from('contacts').update({name,phone,email}).eq('id', editingContactId);
     toast('Contact updated!','success');
   } else {
-    await api('POST',`/api/contacts/${currentUser.id}`,{name,phone,email});
+    await sb.from('contacts').insert({ id:'c_'+Date.now(), user_id:currentUser.id, name, phone:phone||'', email:email||'' });
     toast('Contact added! 👤','success');
   }
   closeContactModal(); renderPage();
@@ -1228,7 +1215,7 @@ async function saveContact() {
 
 function editContact(id) { openContactModal(id); }
 async function deleteContact(id) {
-  await api('DELETE',`/api/contacts/${currentUser.id}/${id}`);
+  await sb.from('contacts').delete().eq('id', id);
   toast('Contact removed.','info'); renderPage();
 }
 
@@ -1281,13 +1268,18 @@ async function saveUser() {
   const role=document.getElementById('uRole').value;
   if (!name||!username||!password) { toast('All fields required','error'); return; }
   try {
-    await api('POST','/api/users',{name,username,password,role});
+    const exists = await sb.from('users').select('id').eq('username',username).maybeSingle();
+    if (exists.data) { toast('Username taken','error'); return; }
+    const { error } = await sb.from('users').insert({ id:'u_'+Date.now(), username, password, name, role:role||'user' });
+    if (error) throw error;
     toast('User added!','success'); closeUserModal(); renderPage();
   } catch(e) { toast(e.message,'error'); }
 }
 
 async function deleteUser(id) {
-  await api('DELETE',`/api/users/${id}`);
+  await sb.from('reminders').delete().eq('user_id', id);
+  await sb.from('contacts').delete().eq('user_id', id);
+  await sb.from('users').delete().eq('id', id);
   toast('User deleted.','info'); renderPage();
 }
 
@@ -1305,7 +1297,7 @@ function toast(msg, type='info') {
 // ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
-initLocalDB();
+initLocalDB(); // keeps history in localStorage
 </script>
 </body>
 </html>
