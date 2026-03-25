@@ -54,7 +54,7 @@ async function sendEmail(to, subject, body) {
 }
 
 // ─── WhatsApp (AiSensy) ───────────────────────────────────────
-async function sendWhatsApp(phone, message) {
+async function sendWhatsApp(phone, message, params = {}) {
   try {
     const res = await fetch('https://backend.aisensy.com/campaign/t1/api/v2', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -63,7 +63,12 @@ async function sendWhatsApp(phone, message) {
         campaignName: process.env.AISENSY_CAMPAIGN_NAME,
         destination: phone.replace(/\D/g, ''),
         userName: 'RemindMe',
-        templateParams: [message],
+        templateParams: [
+          params.title || message,
+          params.datetime || '',
+          params.priority || '',
+          params.desc || ''
+        ],
         media: {}, buttons: [], carouselCards: [], location: {}
       })
     });
@@ -103,8 +108,14 @@ async function processDueReminders() {
       contacts = data || [];
     }
     const message = `🔔 Reminder: ${r.title}\n\n${r.description ? r.description + '\n\n' : ''}📅 ${r.date} at ${r.time}\n⚡ Priority: ${r.priority}`;
+    const waParams = {
+      title: r.title,
+      datetime: `${r.date} at ${r.time}`,
+      priority: r.priority.charAt(0).toUpperCase() + r.priority.slice(1),
+      desc: r.description || 'No additional details'
+    };
     for (const contact of contacts) {
-      if ((r.platform === 'whatsapp' || r.platform === 'both') && contact.phone) await sendWhatsApp(contact.phone, message);
+      if ((r.platform === 'whatsapp' || r.platform === 'both') && contact.phone) await sendWhatsApp(contact.phone, message, waParams);
       if ((r.platform === 'email' || r.platform === 'both') && contact.email) await sendEmail(contact.email, `🔔 Reminder: ${r.title}`, message);
     }
     const updateData = { notified: true, notified_at: now.toISOString() };
