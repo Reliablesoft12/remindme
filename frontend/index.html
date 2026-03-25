@@ -653,7 +653,8 @@ function enterApp() {
   document.getElementById('sidebarName').textContent = currentUser.name;
   document.getElementById('sidebarRole').textContent = currentUser.role === 'admin' ? '⭐ Administrator' : 'Member';
   document.getElementById('adminNav').style.display = currentUser.role === 'admin' ? 'block' : 'none';
-  if (!API_BASE) document.getElementById('configBanner').style.display = 'block';
+  // Supabase is hardcoded — no backend URL needed
+  document.getElementById('configBanner').style.display = 'none';
   currentTab = 'dashboard';
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   const first = document.querySelector('#sidebar .nav-item');
@@ -700,17 +701,19 @@ function updateBadges() {
 }
 
 // ═══════════════════════════════════════════════════════
-// DATA FETCHERS
+// DATA FETCHERS (Supabase direct)
 // ═══════════════════════════════════════════════════════
 async function getMyReminders() {
-  const all = await api('GET', `/api/reminders?userId=${currentUser.id}&role=${currentUser.role}`);
-  return (all||[]).filter(r => r.userId === currentUser.id);
+  const { data } = await sb.from('reminders').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+  return data || [];
 }
 async function getAllReminders() {
-  return await api('GET', `/api/reminders?userId=${currentUser.id}&role=admin`) || [];
+  const { data } = await sb.from('reminders').select('*').order('created_at', { ascending: false });
+  return data || [];
 }
 async function getMyContacts() {
-  return await api('GET', `/api/contacts/${currentUser.id}`) || [];
+  const { data } = await sb.from('contacts').select('*').eq('user_id', currentUser.id);
+  return data || [];
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1006,15 +1009,14 @@ async function renderAllReminders(body) {
 
 // ── Admin: Logs ──
 async function renderLogs(body) {
-  if (!API_BASE) { body.innerHTML = '<div class="empty"><div class="empty-icon">📡</div><p>System logs are only available when backend is connected.</p></div>'; return; }
-  const logs = await api('GET', '/api/logs') || [];
-  if (!logs.length) { body.innerHTML = '<div class="empty"><div class="empty-icon">📡</div><p>No logs yet.</p></div>'; return; }
+  const { data: logs } = await sb.from('logs').select('*').order('created_at', { ascending: false }).limit(100);
+  if (!logs?.length) { body.innerHTML = '<div class="empty"><div class="empty-icon">📡</div><p>No logs yet.</p></div>'; return; }
   body.innerHTML = `<div class="section-card"><div style="max-height:600px;overflow-y:auto">
-    ${logs.slice(0,100).map(l=>`
+    ${logs.map(l=>`
       <div class="log-item">
         <span class="log-type ${l.type}">${l.type}</span>
         <span class="log-msg">${l.message}${l.detail?` <span style="color:var(--textLight)">${l.detail}</span>`:''}</span>
-        <span class="log-time">${new Date(l.time).toLocaleString('en-IN')}</span>
+        <span class="log-time">${new Date(l.created_at).toLocaleString('en-IN')}</span>
       </div>`).join('')}
   </div></div>`;
 }
