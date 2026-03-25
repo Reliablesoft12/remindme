@@ -585,7 +585,7 @@ const GEMINI_API_KEY = ''; // Add your Gemini key here OR use backend
 
 async function callGeminiDirect(prompt) {
   // Try direct Gemini API call from frontend
-  const key = GEMINI_API_KEY || localStorage.getItem('rm_gemini_key');
+  const key = localStorage.getItem('rm_gemini_key') || GEMINI_API_KEY;
   if (!key) return null;
   try {
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
@@ -695,13 +695,14 @@ async function doRegister() {
 }
 
 function enterApp() {
+  // Save session to localStorage
+  localStorage.setItem('rm_session', JSON.stringify(currentUser));
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'block';
   document.getElementById('sidebarAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
   document.getElementById('sidebarName').textContent = currentUser.name;
   document.getElementById('sidebarRole').textContent = currentUser.role === 'admin' ? '⭐ Administrator' : 'Member';
   document.getElementById('adminNav').style.display = currentUser.role === 'admin' ? 'block' : 'none';
-  // Supabase is hardcoded — no backend URL needed
   document.getElementById('configBanner').style.display = 'none';
   currentTab = 'dashboard';
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -712,8 +713,22 @@ function enterApp() {
   tick();
 }
 
+// Auto-login from saved session on page load
+function tryAutoLogin() {
+  const saved = localStorage.getItem('rm_session');
+  if (!saved) return;
+  try {
+    const user = JSON.parse(saved);
+    if (user && user.id && user.username) {
+      currentUser = user;
+      enterApp();
+    }
+  } catch(e) { localStorage.removeItem('rm_session'); }
+}
+
 function doLogout() {
   currentUser = null; currentTab = 'dashboard'; activeFilter = 'all'; searchQ = '';
+  localStorage.removeItem('rm_session');
   document.getElementById('appScreen').style.display = 'none';
   document.getElementById('authScreen').style.display = 'flex';
   document.getElementById('configBanner').style.display = 'none';
@@ -883,7 +898,7 @@ function remCardHTML(r) {
   const dt = r.date ? `${r.date}${r.time?' '+r.time:''}` : 'No date';
   const contacts = LS.get('rm_contacts') || {};
   const userContacts = contacts[currentUser.id] || [];
-  const selC = (r.contactIds||[]).map(id=>userContacts.find(c=>c.id===id)).filter(Boolean);
+  const selC = (r.contact_ids||r.contactIds||[]).map(id=>userContacts.find(c=>c.id===id)).filter(Boolean);
   return `
   <div class="rem-card ${r.completed?'completed':''}" id="rc_${r.id}">
     <div class="priority-dot ${r.priority}"></div>
@@ -1104,7 +1119,7 @@ async function openReminderModal(id) {
   document.getElementById('fRecur').value = r?.recur || 'none';
   document.getElementById('aiNlInput').value = '';
   document.getElementById('suggestBox').classList.remove('show');
-  selectedContactIds = r?.contactIds ? [...r.contactIds] : [];
+  selectedContactIds = r?.contact_ids ? [...r.contact_ids] : (r?.contactIds ? [...r.contactIds] : []);
   selectPlat(r?.platform || 'whatsapp', null);
   await renderChips(); await renderContactDropdown();
   document.getElementById('reminderModal').classList.add('open');
@@ -1304,6 +1319,7 @@ async function toggleContactSel(id) {
   const i=selectedContactIds.indexOf(id);
   if(i>-1) selectedContactIds.splice(i,1); else selectedContactIds.push(id);
   await renderChips(); await renderContactDropdown();
+  // Keep dropdown open so user can select multiple — close on outside click only
 }
 
 async function renderChips() {
@@ -1365,6 +1381,8 @@ function toast(msg, type='info') {
 // INIT
 // ═══════════════════════════════════════════════════════
 initLocalDB(); // keeps history in localStorage
+// Try restoring session on page load
+document.addEventListener('DOMContentLoaded', tryAutoLogin);
 </script>
 </body>
 </html>
