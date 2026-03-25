@@ -587,14 +587,24 @@ async function callGeminiDirect(prompt) {
   const key = localStorage.getItem('rm_gemini_key') || GEMINI_API_KEY;
   if (!key) { console.warn('No Gemini key found'); return null; }
   try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-    });
-    const data = await res.json();
-    if (data.error) { console.error('Gemini error:', data.error.message); return null; }
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || null;
+    // Try gemini-1.5-flash first, fallback to gemini-pro
+    const models = ['gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-pro'];
+    for (const model of models) {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+      const data = await res.json();
+      console.log(`Gemini [${model}] response:`, JSON.stringify(data).slice(0, 200));
+      if (data.error) {
+        console.warn(`Model ${model} failed:`, data.error.message);
+        continue; // try next model
+      }
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (text) return text;
+    }
+    return null;
   } catch(e) { console.error('Gemini fetch error:', e); return null; }
 }
 
@@ -662,20 +672,29 @@ async function doLogin() {
   if (!username || !password) { toast('Please enter username and password', 'error'); return; }
   try {
     const hashed = await hashPassword(password);
+    console.log('Attempting login for:', username, '| hashed:', hashed.slice(0,10)+'...');
+
     // Try hashed password first
     let { data, error } = await sb.from('users').select('*').eq('username', username).eq('password', hashed).single();
-    // Fallback: try plain text (for existing admin account migration)
+    console.log('Hashed login result:', data ? 'found' : 'not found', error?.message || '');
+
+    // Fallback: try plain text
     if (error || !data) {
       const res2 = await sb.from('users').select('*').eq('username', username).eq('password', password).single();
+      console.log('Plain login result:', res2.data ? 'found' : 'not found', res2.error?.message || '');
       if (res2.error || !res2.data) throw new Error('Invalid credentials');
       data = res2.data;
-      // Auto-migrate to hashed password
+      // Auto-migrate to hashed
       await sb.from('users').update({ password: hashed }).eq('id', data.id);
+      console.log('Migrated to hashed password');
     }
     const { password: _, ...safe } = data;
     currentUser = safe;
     enterApp();
-  } catch(e) { toast('Invalid username or password', 'error'); }
+  } catch(e) {
+    console.error('Login error:', e.message);
+    toast('Invalid username or password', 'error');
+  }
 }
 
 async function doRegister() {
