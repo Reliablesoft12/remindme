@@ -522,6 +522,15 @@ const API_BASE = localStorage.getItem("rm_api_base") || "";
 // Init Supabase client
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ── Password hashing (SHA-256 via WebCrypto) ──────────────
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + 'remindme_salt_2025');
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 let currentUser = null, currentTab = 'dashboard';
 let activeFilter = 'all', searchQ = '';
 let editingRemId = null, editingContactId = null, snoozeId = null;
@@ -571,12 +580,44 @@ async function getMyContacts() {
   return data || [];
 }
 
-async function callAI(endpoint, body) {
-  if (!API_BASE) { toast('AI needs backend URL in Settings.', 'info'); return null; }
+// Gemini API key (hardcoded for frontend use)
+const GEMINI_API_KEY = ''; // Add your Gemini key here OR use backend
+
+async function callGeminiDirect(prompt) {
+  // Try direct Gemini API call from frontend
+  const key = GEMINI_API_KEY || localStorage.getItem('rm_gemini_key');
+  if (!key) return null;
   try {
-    const res = await fetch(API_BASE + endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    return await res.json();
-  } catch(e) { toast('AI request failed', 'error'); return null; }
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    const data = await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || null;
+  } catch(e) { return null; }
+}
+
+async function callAI(endpoint, body) {
+  // Try backend first if configured
+  if (API_BASE) {
+    try {
+      const res = await fetch(API_BASE + endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      return await res.json();
+    } catch(e) {}
+  }
+  // Fallback: call Gemini directly from frontend
+  const today = new Date().toISOString().split('T')[0];
+  let prompt = '';
+  if (endpoint === '/api/ai/parse') {
+    prompt = `Today is ${today}. Parse this reminder into JSON only, no markdown, no explanation:\n"${body.text}"\nReturn exactly: {"title":"...","desc":"...","date":"YYYY-MM-DD","time":"HH:MM","priority":"high|medium|low","recur":"none|daily|weekly|monthly"}\nRules: no date=today, no time=09:00, infer priority from urgency.`;
+  } else if (endpoint === '/api/ai/suggest') {
+    prompt = `Improve this reminder title and suggest priority. Return JSON only, no markdown:\n"${body.title}"\nReturn exactly: {"improvedTitle":"...","priority":"high|medium|low","priorityReason":"one short sentence"}`;
+  }
+  if (!prompt) { toast('AI needs a Gemini API key. Add it in Settings.', 'info'); return null; }
+  const text = await callGeminiDirect(prompt);
+  if (!text) { toast('Add Gemini API key in Settings to use AI features.', 'info'); return null; }
+  try { return JSON.parse(text.replace(/```json|```/g,'').trim()); } catch(e) { return null; }
 }
 
 async function fetchDigest(userId) {
@@ -615,17 +656,23 @@ function switchAuthTab(tab, btn) {
 async function doLogin() {
   const username = document.getElementById('loginUser').value.trim();
   const password = document.getElementById('loginPass').value;
+  if (!username || !password) { toast('Please enter username and password', 'error'); return; }
   try {
-    const data = await doLogin_db(username, password);
-    currentUser = data.user;
+    const hashed = await hashPassword(password);
+    // Try hashed password first
+    let { data, error } = await sb.from('users').select('*').eq('username', username).eq('password', hashed).single();
+    // Fallback: try plain text (for existing admin account migration)
+    if (error || !data) {
+      const res2 = await sb.from('users').select('*').eq('username', username).eq('password', password).single();
+      if (res2.error || !res2.data) throw new Error('Invalid credentials');
+      data = res2.data;
+      // Auto-migrate to hashed password
+      await sb.from('users').update({ password: hashed }).eq('id', data.id);
+    }
+    const { password: _, ...safe } = data;
+    currentUser = safe;
     enterApp();
   } catch(e) { toast('Invalid username or password', 'error'); }
-}
-async function doLogin_db(username, password) {
-  const { data, error } = await sb.from('users').select('*').eq('username', username).eq('password', password).single();
-  if (error || !data) throw new Error('Invalid credentials');
-  const { password: _, ...safe } = data;
-  return { user: safe };
 }
 
 async function doRegister() {
@@ -636,7 +683,8 @@ async function doRegister() {
   try {
     const existing = await sb.from('users').select('id').eq('username', username).maybeSingle();
     if (existing.data) { toast('Username already taken', 'error'); return; }
-    const newUser = { id: 'u_' + Date.now(), username, password, name, role: 'user' };
+    const hashed = await hashPassword(password);
+    const newUser = { id: 'u_' + Date.now(), username, password: hashed, name, role: 'user' };
     const { error } = await sb.from('users').insert(newUser);
     if (error) throw new Error('Registration failed');
     const { password: _, ...safe } = newUser;
@@ -913,16 +961,28 @@ async function renderContacts(body) {
 // ── Settings ──
 function renderSettings(body) {
   const saved = localStorage.getItem('rm_api_base') || '';
+  const geminiKey = localStorage.getItem('rm_gemini_key') || '';
   body.innerHTML = `
   <div class="section-card">
-    <div class="section-head"><div class="section-title">⚙️ Backend Configuration</div></div>
+    <div class="section-head"><div class="section-title">⚙️ Configuration</div></div>
     <div class="section-body">
       <div class="settings-section">
-        <div class="settings-label">Backend API URL</div>
+        <div class="settings-label">✨ Gemini AI Key (for AI features)</div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Gemini API Key</div>
+            <div class="settings-row-sub">Get free key from <a href="https://aistudio.google.com" target="_blank" style="color:var(--blue)">aistudio.google.com</a> → Get API Key</div>
+          </div>
+          <input type="password" class="settings-input" id="geminiKeyInput" value="${geminiKey}" placeholder="AIza..." />
+          <button class="settings-save-btn" onclick="saveGeminiKey()">Save</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">Backend API URL (optional)</div>
         <div class="settings-row">
           <div class="settings-row-info">
             <div class="settings-row-label">API Base URL</div>
-            <div class="settings-row-sub">Your Railway/Render backend URL e.g. https://remindme.railway.app</div>
+            <div class="settings-row-sub">Only needed if you deploy backend separately (Railway/Render)</div>
           </div>
           <input type="text" class="settings-input" id="apiUrlInput" value="${saved}" placeholder="https://your-backend.railway.app" />
           <button class="settings-save-btn" onclick="saveApiUrl()">Save</button>
@@ -947,12 +1007,16 @@ function renderSettings(body) {
   </div>`;
 }
 
+function saveGeminiKey() {
+  const key = document.getElementById('geminiKeyInput').value.trim();
+  localStorage.setItem('rm_gemini_key', key);
+  toast(key ? 'Gemini API key saved! ✨ AI features enabled.' : 'Gemini key cleared.', 'success');
+}
+
 function saveApiUrl() {
   const url = document.getElementById('apiUrlInput').value.trim().replace(/\/$/, '');
-  API_BASE = url;
   localStorage.setItem('rm_api_base', url);
-  document.getElementById('configBanner').style.display = url ? 'none' : 'block';
-  toast(url ? 'Backend URL saved! ✅' : 'Cleared — running offline.', 'success');
+  toast(url ? 'Backend URL saved! ✅' : 'Cleared.', 'success');
 }
 
 // ── Admin: Users ──
@@ -1272,7 +1336,8 @@ async function saveUser() {
   try {
     const exists = await sb.from('users').select('id').eq('username',username).maybeSingle();
     if (exists.data) { toast('Username taken','error'); return; }
-    const { error } = await sb.from('users').insert({ id:'u_'+Date.now(), username, password, name, role:role||'user' });
+    const hashed = await hashPassword(password);
+    const { error } = await sb.from('users').insert({ id:'u_'+Date.now(), username, password: hashed, name, role:role||'user' });
     if (error) throw error;
     toast('User added!','success'); closeUserModal(); renderPage();
   } catch(e) { toast(e.message,'error'); }
