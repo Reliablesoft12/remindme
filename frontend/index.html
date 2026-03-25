@@ -1073,7 +1073,6 @@ async function testGeminiKey() {
   if (!key) { toast('No key saved yet!', 'error'); return; }
   const btn = document.getElementById('testGeminiBtn');
   if(btn) { btn.textContent = 'Testing...'; btn.disabled = true; }
-  const key = localStorage.getItem('rm_gemini_key');
   const model = await detectGeminiModel(key);
   if(btn) { btn.textContent = '🧪 Test Key'; btn.disabled = false; }
   if (model) {
