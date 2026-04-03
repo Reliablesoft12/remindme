@@ -1,7 +1,7 @@
 {
   "name": "remindme-backend",
-  "version": "1.0.0",
-  "description": "RemindMe backend — AiSensy WhatsApp + Outlook email + Gemini AI + Supabase",
+  "version": "2.0.0",
+  "description": "RemindMe backend — Gemini + OpenAI AI, AiSensy WhatsApp, Outlook email, Supabase",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
