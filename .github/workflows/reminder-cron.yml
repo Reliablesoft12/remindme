@@ -2,8 +2,9 @@ name: 🔔 Reminder Cron Job
 
 on:
   schedule:
-    - cron: '*/15 * * * *'  # Every 15 minutes
-  workflow_dispatch:         # Manual trigger
+    # Run every 10 minutes for better reliability
+    - cron: '*/10 * * * *'
+  workflow_dispatch:  # Manual trigger from Actions tab
 
 jobs:
   process-reminders:
@@ -35,5 +36,8 @@ jobs:
           OUTLOOK_EMAIL: ${{ secrets.OUTLOOK_EMAIL }}
           OUTLOOK_PASSWORD: ${{ secrets.OUTLOOK_PASSWORD }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+          AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: npm run cron
