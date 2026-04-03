@@ -27,10 +27,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
 input,select,textarea,button{font-family:var(--font)}
 
-/* ── CONFIG BANNER ── */
-.config-banner{background:var(--amber);color:white;text-align:center;padding:10px 16px;font-size:13px;font-weight:600;display:none}
-.config-banner a{color:white;text-decoration:underline;cursor:pointer}
-
 /* ── AUTH ── */
 #authScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f2045 0%,#1e3a6e 50%,#2563eb 100%);padding:20px;position:relative;overflow:hidden}
 #authScreen::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
@@ -97,7 +93,6 @@ input,select,textarea,button{font-family:var(--font)}
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
 .stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);transition:transform .18s,box-shadow .18s;position:relative;overflow:hidden}
 .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadowMd)}
-.stat-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
 .stat-icon-wrap{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
 .stat-icon-wrap.blue{background:var(--blueLight)}.stat-icon-wrap.green{background:var(--greenLight)}.stat-icon-wrap.amber{background:var(--amberLight)}.stat-icon-wrap.red{background:var(--redLight)}
 .stat-value{font-size:32px;font-weight:800;color:var(--navy);font-family:var(--mono)}
@@ -113,7 +108,7 @@ input,select,textarea,button{font-family:var(--font)}
 .digest-card{background:linear-gradient(135deg,var(--navy) 0%,var(--navy3) 100%);border-radius:var(--radius);padding:24px;margin-bottom:20px;position:relative;overflow:hidden}
 .digest-card::before{content:'✨';position:absolute;right:20px;top:20px;font-size:32px;opacity:.2}
 .digest-title{font-size:13px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
-.digest-text{font-size:15px;color:white;line-height:1.6;font-weight:400}
+.digest-text{font-size:15px;color:white;line-height:1.6;font-weight:400;white-space:pre-wrap}
 .digest-loading{color:rgba(255,255,255,.5);font-size:14px;display:flex;align-items:center;gap:8px}
 .digest-btn{margin-top:14px;padding:8px 16px;background:rgba(255,255,255,.12);color:white;border:1px solid rgba(255,255,255,.2);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;font-family:var(--font)}
 .digest-btn:hover{background:rgba(255,255,255,.2)}
@@ -129,6 +124,11 @@ input,select,textarea,button{font-family:var(--font)}
 .ai-parse-btn:disabled{opacity:.5;cursor:not-allowed}
 .ai-hint{font-size:12px;color:var(--textMuted);margin-top:8px}
 
+/* ── AI STATUS INDICATOR ── */
+.ai-status{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;margin-left:8px}
+.ai-status.ready{background:var(--greenLight);color:var(--green)}
+.ai-status.nokey{background:var(--amberLight);color:var(--amber)}
+
 /* ── FILTERS ── */
 .filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .filter-chip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--textMuted);font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;font-family:var(--font)}
@@ -136,7 +136,6 @@ input,select,textarea,button{font-family:var(--font)}
 .filter-chip.active{background:var(--blueLight);border-color:var(--blue);color:var(--blue)}
 .search-wrap{display:flex;align-items:center;gap:8px;border:1.5px solid var(--border);border-radius:20px;padding:6px 14px;background:var(--bg);margin-left:auto}
 .search-wrap input{background:transparent;border:none;outline:none;font-size:13px;color:var(--text);width:150px}
-.search-wrap input::placeholder{color:var(--textLight)}
 
 /* ── REMINDER CARDS ── */
 .reminder-list{display:flex;flex-direction:column;gap:10px}
@@ -157,12 +156,7 @@ input,select,textarea,button{font-family:var(--font)}
 .rem-desc{font-size:12px;color:var(--textMuted);margin-bottom:10px;line-height:1.5}
 .rem-tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px}
-.tag.blue{background:var(--blueLight);color:var(--blue)}
-.tag.green{background:var(--greenLight);color:var(--green)}
-.tag.red{background:var(--redLight);color:var(--red)}
-.tag.amber{background:var(--amberLight);color:var(--amber)}
-.tag.navy{background:var(--bg2);color:var(--navy2)}
-.tag.purple{background:var(--purpleLight);color:var(--purple)}
+.tag.blue{background:var(--blueLight);color:var(--blue)}.tag.green{background:var(--greenLight);color:var(--green)}.tag.red{background:var(--redLight);color:var(--red)}.tag.amber{background:var(--amberLight);color:var(--amber)}.tag.navy{background:var(--bg2);color:var(--navy2)}.tag.purple{background:var(--purpleLight);color:var(--purple)}
 .rem-actions{display:flex;gap:5px;flex-shrink:0}
 .icon-btn{width:30px;height:30px;border-radius:7px;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:13px;color:var(--textMuted);transition:all .18s;display:flex;align-items:center;justify-content:center}
 .icon-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blueLight)}
@@ -175,16 +169,9 @@ input,select,textarea,button{font-family:var(--font)}
 
 /* ── HISTORY ── */
 .hist-item{display:flex;align-items:center;gap:14px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;background:var(--white)}
-.hist-icon{font-size:18px}
-.hist-body{flex:1}
-.hist-title{font-size:13px;font-weight:500;color:var(--text)}
-.hist-time{font-size:11px;color:var(--textLight);font-family:var(--mono);margin-top:2px}
+.hist-icon{font-size:18px}.hist-body{flex:1}.hist-title{font-size:13px;font-weight:500;color:var(--text)}.hist-time{font-size:11px;color:var(--textLight);font-family:var(--mono);margin-top:2px}
 .hist-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
-.hist-badge.added{background:var(--blueLight);color:var(--blue)}
-.hist-badge.done{background:var(--greenLight);color:var(--green)}
-.hist-badge.snoozed{background:var(--amberLight);color:var(--amber)}
-.hist-badge.deleted{background:var(--redLight);color:var(--red)}
-.hist-badge.edited{background:var(--purpleLight);color:var(--purple)}
+.hist-badge.added{background:var(--blueLight);color:var(--blue)}.hist-badge.done{background:var(--greenLight);color:var(--green)}.hist-badge.snoozed{background:var(--amberLight);color:var(--amber)}.hist-badge.deleted{background:var(--redLight);color:var(--red)}.hist-badge.edited{background:var(--purpleLight);color:var(--purple)}
 
 /* ── CONTACTS ── */
 .contacts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
@@ -198,20 +185,15 @@ input,select,textarea,button{font-family:var(--font)}
 .user-table{width:100%;border-collapse:collapse;min-width:500px}
 .user-table th{text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--textMuted);padding:10px 14px;border-bottom:1.5px solid var(--border)}
 .user-table td{padding:12px 14px;font-size:13px;border-bottom:1px solid var(--border);color:var(--textMid);vertical-align:middle}
-.user-table tr:last-child td{border-bottom:none}
 .user-table tr:hover td{background:var(--bg)}
 .role-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
-.role-badge.admin{background:var(--blueLight);color:var(--blue)}
-.role-badge.user{background:var(--bg2);color:var(--navy2)}
+.role-badge.admin{background:var(--blueLight);color:var(--blue)}.role-badge.user{background:var(--bg2);color:var(--navy2)}
 
 /* ── LOGS TABLE ── */
 .log-item{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px}
 .log-item:last-child{border-bottom:none}
 .log-type{padding:2px 8px;border-radius:4px;font-weight:700;text-transform:uppercase;font-size:10px;white-space:nowrap}
-.log-type.email{background:var(--blueLight);color:var(--blue)}
-.log-type.whatsapp{background:var(--greenLight);color:var(--green)}
-.log-type.reminder{background:var(--amberLight);color:var(--amber)}
-.log-type.error{background:var(--redLight);color:var(--red)}
+.log-type.email{background:var(--blueLight);color:var(--blue)}.log-type.whatsapp{background:var(--greenLight);color:var(--green)}.log-type.reminder{background:var(--amberLight);color:var(--amber)}.log-type.error{background:var(--redLight);color:var(--red)}.log-type.auth{background:var(--purpleLight);color:var(--purple)}
 .log-msg{flex:1;color:var(--textMid)}
 .log-time{color:var(--textLight);font-family:var(--mono);white-space:nowrap}
 
@@ -225,13 +207,11 @@ input,select,textarea,button{font-family:var(--font)}
 .modal-close{width:32px;height:32px;border:1.5px solid var(--border);border-radius:8px;background:transparent;cursor:pointer;font-size:14px;color:var(--textMuted);transition:all .18s;display:flex;align-items:center;justify-content:center}
 .modal-close:hover{border-color:var(--red);color:var(--red)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.fg{margin-bottom:16px}
-.fg.full{grid-column:1/-1}
+.fg{margin-bottom:16px}.fg.full{grid-column:1/-1}
 .label{display:block;font-size:12px;font-weight:600;color:var(--textMid);margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px}
 .inp{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--text);background:var(--white);outline:none;transition:border-color .18s,box-shadow .18s}
 .inp:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
 .sel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
-.sel option{background:white}
 .tarea{resize:vertical;min-height:72px}
 
 /* ── AI SUGGEST BOX ── */
@@ -291,22 +271,28 @@ input,select,textarea,button{font-family:var(--font)}
 .toast-wrap{position:fixed;bottom:22px;right:22px;z-index:300;display:flex;flex-direction:column;gap:9px}
 .toast{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:13px 16px;display:flex;align-items:center;gap:11px;min-width:240px;box-shadow:var(--shadowMd);animation:toastIn .3s ease}
 @keyframes toastIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
-.toast.success{border-left:3px solid var(--green)}
-.toast.error{border-left:3px solid var(--red)}
-.toast.info{border-left:3px solid var(--blue)}
-.toast-icon{font-size:16px}
-.toast-msg{font-size:13px;font-weight:500;color:var(--text)}
+.toast.success{border-left:3px solid var(--green)}.toast.error{border-left:3px solid var(--red)}.toast.info{border-left:3px solid var(--blue)}
+.toast-icon{font-size:16px}.toast-msg{font-size:13px;font-weight:500;color:var(--text)}
 
 /* ── SETTINGS PAGE ── */
 .settings-section{margin-bottom:24px}
 .settings-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--textMuted);margin-bottom:10px}
-.settings-row{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px}
-.settings-row-info{flex:1}
+.settings-row{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;flex-wrap:wrap}
+.settings-row-info{flex:1;min-width:200px}
 .settings-row-label{font-size:14px;font-weight:600;color:var(--navy)}
 .settings-row-sub{font-size:12px;color:var(--textMuted);margin-top:2px}
-.settings-input{flex:2;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--mono);color:var(--text);background:var(--bg);outline:none}
+.settings-input{flex:2;min-width:200px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--mono);color:var(--text);background:var(--bg);outline:none}
 .settings-input:focus{border-color:var(--blue)}
-.settings-save-btn{padding:8px 16px;background:var(--blue);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.settings-save-btn{padding:8px 16px;background:var(--blue);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap}
+
+/* ── AGENTIC CARD ── */
+.agent-card{background:linear-gradient(135deg,#7c3aed 0%,#2563eb 100%);border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;color:white;position:relative;overflow:hidden}
+.agent-card::before{content:'🤖';position:absolute;right:16px;top:16px;font-size:28px;opacity:.2}
+.agent-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:.6;margin-bottom:8px}
+.agent-text{font-size:14px;line-height:1.6;white-space:pre-wrap}
+.agent-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.agent-btn{padding:7px 14px;background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.25);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .18s}
+.agent-btn:hover{background:rgba(255,255,255,.25)}
 
 /* ── RESPONSIVE ── */
 @media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
@@ -323,19 +309,10 @@ input,select,textarea,button{font-family:var(--font)}
   .topbar{padding:14px 16px}
   .ai-input-row{flex-direction:column}
 }
-@media(max-width:480px){
-  .stat-value{font-size:26px}
-  .modal-box{padding:22px 18px}
-  .contacts-grid{grid-template-columns:1fr}
-}
+@media(max-width:480px){.stat-value{font-size:26px}.modal-box{padding:22px 18px}.contacts-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
-<!-- CONFIG BANNER -->
-<div class="config-banner" id="configBanner">
-  ⚙️ Backend not configured — running in offline mode (localStorage). <a onclick="navTo('settings',null)">Configure backend URL →</a>
-</div>
 
 <!-- ── AUTH ── -->
 <div id="authScreen">
@@ -353,7 +330,6 @@ input,select,textarea,button{font-family:var(--font)}
       <div class="form-group"><label class="form-label">Username</label><input type="text" class="form-input" id="loginUser" placeholder="Enter username" onkeydown="if(event.key==='Enter')doLogin()" /></div>
       <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="loginPass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()" /></div>
       <button class="btn-primary" onclick="doLogin()">Sign In →</button>
-      <div class="auth-hint">Admin: <span>admin</span> / <span>admin</span></div>
     </div>
     <div id="registerForm" style="display:none">
       <div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="regName" placeholder="Your name" /></div>
@@ -416,37 +392,25 @@ input,select,textarea,button{font-family:var(--font)}
       <div class="modal-title" id="reminderModalTitle">New Reminder</div>
       <button class="modal-close" onclick="closeReminderModal()">✕</button>
     </div>
-    <!-- AI Natural Language Input -->
     <div class="ai-input-wrap">
-      <div class="ai-input-label">✨ AI Smart Fill</div>
+      <div class="ai-input-label">✨ AI Smart Fill <span class="ai-status" id="modalAiStatus"></span></div>
       <div class="ai-input-row">
-        <input type="text" class="ai-input" id="aiNlInput" placeholder='e.g. "Call dentist this Friday at 3pm, high priority"' />
+        <input type="text" class="ai-input" id="aiNlInput" placeholder='e.g. "Call dentist this Friday at 3pm, high priority"' onkeydown="if(event.key==='Enter')runAIParse()" />
         <button class="ai-parse-btn" id="aiParseBtn" onclick="runAIParse()">✨ Parse</button>
       </div>
-      <div class="ai-hint">Type naturally — AI will fill the form for you</div>
+      <div class="ai-hint">Type naturally — AI will fill the form for you (press Enter or click Parse)</div>
     </div>
     <div class="form-row">
       <div class="fg full">
         <label class="label">Title *</label>
         <input type="text" class="inp" id="fTitle" placeholder="e.g. Send project proposal" oninput="debounceSuggest(this.value)" />
-        <div class="suggest-box" id="suggestBox">
-          <div class="suggest-row">
-            <div class="suggest-text" id="suggestText"></div>
-            <button class="suggest-apply" onclick="applySuggestion()">Apply ✓</button>
-          </div>
-        </div>
+        <div class="suggest-box" id="suggestBox"><div class="suggest-row"><div class="suggest-text" id="suggestText"></div><button class="suggest-apply" onclick="applySuggestion()">Apply ✓</button></div></div>
       </div>
       <div class="fg full"><label class="label">Description</label><textarea class="inp tarea" id="fDesc" placeholder="Additional details..."></textarea></div>
       <div class="fg"><label class="label">Date</label><input type="date" class="inp" id="fDate" /></div>
       <div class="fg"><label class="label">Time</label><input type="time" class="inp" id="fTime" /></div>
-      <div class="fg">
-        <label class="label">Priority</label>
-        <select class="inp sel" id="fPriority"><option value="high">🔥 High</option><option value="medium" selected>⚡ Medium</option><option value="low">🟢 Low</option></select>
-      </div>
-      <div class="fg">
-        <label class="label">Recurring</label>
-        <select class="inp sel" id="fRecur"><option value="none">— None</option><option value="daily">🔁 Daily</option><option value="weekly">📅 Weekly</option><option value="monthly">🗓️ Monthly</option></select>
-      </div>
+      <div class="fg"><label class="label">Priority</label><select class="inp sel" id="fPriority"><option value="high">🔥 High</option><option value="medium" selected>⚡ Medium</option><option value="low">🟢 Low</option></select></div>
+      <div class="fg"><label class="label">Recurring</label><select class="inp sel" id="fRecur"><option value="none">— None</option><option value="daily">🔁 Daily</option><option value="weekly">📅 Weekly</option><option value="monthly">🗓️ Monthly</option></select></div>
       <div class="fg full">
         <label class="label">Send Via</label>
         <div class="platform-row">
@@ -508,27 +472,34 @@ input,select,textarea,button{font-family:var(--font)}
   </div>
 </div>
 
+<!-- ── PASSWORD CHANGE MODAL ── -->
+<div class="modal-bg" id="passwordModal">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-header"><div class="modal-title">🔑 Change Password</div><button class="modal-close" onclick="closePasswordModal()">✕</button></div>
+    <div class="fg"><label class="label">Current Password *</label><input type="password" class="inp" id="pwCurrent" placeholder="Enter current password" /></div>
+    <div class="fg"><label class="label">New Password *</label><input type="password" class="inp" id="pwNew" placeholder="Enter new password (min 6 chars)" /></div>
+    <div class="fg"><label class="label">Confirm New Password *</label><input type="password" class="inp" id="pwConfirm" placeholder="Re-enter new password" /></div>
+    <div class="modal-footer"><button class="btn-cancel" onclick="closePasswordModal()">Cancel</button><button class="btn-save" onclick="doChangePassword()">🔑 Update Password</button></div>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toasts"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
 <script>
 // ═══════════════════════════════════════════════════════
-// SUPABASE CONFIG & STATE
+// CONFIG & STATE
 // ═══════════════════════════════════════════════════════
 const SUPABASE_URL = "https://ekmuocciihhpiqtcztwi.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_Rm32wokHPFsMU_JQC-j_Rg_ppzlDHw2";
-const API_BASE = localStorage.getItem("rm_api_base") || "";
-
-// Init Supabase client
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ── Password hashing (SHA-256 via WebCrypto) ──────────────
+// ── Password hashing (SHA-256 via WebCrypto — matches backend) ──
 async function hashPassword(password) {
   const encoder = new TextEncoder();
   const data = encoder.encode(password + 'remindme_salt_2025');
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 let currentUser = null, currentTab = 'dashboard';
@@ -537,123 +508,148 @@ let editingRemId = null, editingContactId = null, snoozeId = null;
 let selectedPlatform = 'whatsapp', selectedContactIds = [];
 let suggestTimeout = null, lastSuggestion = null;
 
-// ── Local history (only this stays in localStorage) ──
 const LS = {
   get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } },
   set: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
 };
-function initLocalDB() {
-  if (!LS.get('rm_history')) LS.set('rm_history', []);
+function initLocalDB() { if (!LS.get('rm_history')) LS.set('rm_history', []); }
+
+// ═══════════════════════════════════════════════════════
+// AI ENGINE — Gemini + OpenAI with proper fallback
+// ═══════════════════════════════════════════════════════
+function getAIConfig() {
+  return {
+    geminiKey: localStorage.getItem('rm_gemini_key') || '',
+    openaiKey: localStorage.getItem('rm_openai_key') || '',
+    openaiModel: localStorage.getItem('rm_openai_model') || 'gpt-4o-mini',
+    preferred: localStorage.getItem('rm_ai_provider') || 'gemini',
+  };
 }
 
-// ── Supabase DB helpers ──────────────────────────────────────
-
-async function doLogin(username, password) {
-  const { data, error } = await sb.from('users').select('*').eq('username', username).eq('password', password).single();
-  if (error || !data) throw new Error('Invalid credentials');
-  const { password: _, ...safe } = data;
-  return { user: safe };
+function hasAnyAIKey() {
+  const c = getAIConfig();
+  return !!(c.geminiKey || c.openaiKey);
 }
 
-async function doRegisterDB(username, password, name) {
-  const exists = await sb.from('users').select('id').eq('username', username).single();
-  if (exists.data) throw new Error('Username already taken');
-  const newUser = { id: 'u_' + Date.now(), username, password, name, role: 'user' };
-  const { error } = await sb.from('users').insert(newUser);
-  if (error) throw new Error('Registration failed');
-  const { password: _, ...safe } = newUser;
-  return { user: safe };
-}
-
-async function getMyReminders() {
-  const { data } = await sb.from('reminders').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
-  return data || [];
-}
-
-async function getAllReminders() {
-  const { data } = await sb.from('reminders').select('*').order('created_at', { ascending: false });
-  return data || [];
-}
-
-async function getMyContacts() {
-  const { data } = await sb.from('contacts').select('*').eq('user_id', currentUser.id);
-  return data || [];
-}
-
-// Gemini API key (hardcoded for frontend use)
-const GEMINI_API_KEY = ''; // Add your Gemini key here OR use backend
-
-async function callGeminiDirect(prompt) {
-  const key = localStorage.getItem('rm_gemini_key') || GEMINI_API_KEY;
-  if (!key) { console.warn('No Gemini key found'); return null; }
-  try {
-    // Try gemini-1.5-flash first, fallback to gemini-pro
-    const models = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash-8b'];
-    for (const model of models) {
+// Gemini direct call with model fallback
+async function callGemini(prompt) {
+  const key = getAIConfig().geminiKey;
+  if (!key) return null;
+  const models = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'];
+  for (const model of models) {
+    try {
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2 } })
       });
       const data = await res.json();
-      console.log(`Gemini [${model}] response:`, JSON.stringify(data).slice(0, 200));
-      if (data.error) {
-        console.warn(`Model ${model} failed:`, data.error.message);
-        continue; // try next model
-      }
+      if (data.error) { console.warn(`Gemini ${model}:`, data.error.message); continue; }
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (text) return text;
-    }
-    return null;
-  } catch(e) { console.error('Gemini fetch error:', e); return null; }
+      if (text) { console.log(`✅ Gemini [${model}] responded`); return text; }
+    } catch(e) { console.warn(`Gemini ${model} fetch error:`, e.message); }
+  }
+  return null;
 }
 
-async function callAI(endpoint, body) {
-  // Try backend first if configured
-  if (API_BASE) {
-    try {
-      const res = await fetch(API_BASE + endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      return await res.json();
-    } catch(e) {}
-  }
-  // Fallback: call Gemini directly from frontend
-  const today = new Date().toISOString().split('T')[0];
-  let prompt = '';
-  if (endpoint === '/api/ai/parse') {
-    prompt = `Today is ${today}. Parse this reminder into JSON only, no markdown, no explanation:\n"${body.text}"\nReturn exactly: {"title":"...","desc":"...","date":"YYYY-MM-DD","time":"HH:MM","priority":"high|medium|low","recur":"none|daily|weekly|monthly"}\nRules: no date=today, no time=09:00, infer priority from urgency.`;
-  } else if (endpoint === '/api/ai/suggest') {
-    prompt = `Improve this reminder title and suggest priority. Return JSON only, no markdown:\n"${body.title}"\nReturn exactly: {"improvedTitle":"...","priority":"high|medium|low","priorityReason":"one short sentence"}`;
-  }
-  if (!prompt) return null;
-  const key = localStorage.getItem('rm_gemini_key') || GEMINI_API_KEY;
-  if (!key) { toast('Add Gemini API key in Settings to enable AI ✨', 'info'); return null; }
-  const text = await callGeminiDirect(prompt);
-  console.log('AI raw response:', text);
-  if (!text) { toast('Gemini API error — check your key in Settings', 'error'); return null; }
+// OpenAI direct call
+async function callOpenAI(prompt) {
+  const c = getAIConfig();
+  if (!c.openaiKey) return null;
   try {
-    // Strip markdown, find JSON object
-    let clean = text.replace(/```json|```/g,'').trim();
-    // Extract JSON if wrapped in text
-    const jsonMatch = clean.match(/\{[\s\S]*\}/);
-    if (jsonMatch) clean = jsonMatch[0];
-    const parsed = JSON.parse(clean);
-    console.log('AI parsed result:', parsed);
-    return parsed;
-  } catch(e) {
-    console.error('JSON parse failed:', e, 'Raw:', text);
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${c.openaiKey}` },
+      body: JSON.stringify({
+        model: c.openaiModel, temperature: 0.2,
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant. Always respond with valid JSON only, no markdown fences, no explanation.' },
+          { role: 'user', content: prompt }
+        ]
+      })
+    });
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content;
+    if (text) { console.log('✅ OpenAI responded'); return text; }
+    console.warn('OpenAI error:', data.error?.message);
+    return null;
+  } catch(e) { console.warn('OpenAI fetch error:', e.message); return null; }
+}
+
+// Unified AI call: tries preferred provider, falls back to other
+async function callAI_unified(prompt) {
+  const c = getAIConfig();
+  if (!c.geminiKey && !c.openaiKey) {
+    toast('Add an AI key in Settings (Gemini or OpenAI) to use AI features ✨', 'info');
     return null;
   }
+  let result = null;
+  if (c.preferred === 'openai') {
+    result = await callOpenAI(prompt);
+    if (!result) result = await callGemini(prompt);
+  } else {
+    result = await callGemini(prompt);
+    if (!result) result = await callOpenAI(prompt);
+  }
+  if (!result) toast('AI request failed — check your API keys in Settings', 'error');
+  return result;
+}
+
+// Parse AI JSON response safely
+function parseAIJSON(text) {
+  if (!text) return null;
+  try {
+    let clean = text.replace(/```json|```/g, '').trim();
+    const match = clean.match(/\{[\s\S]*\}/);
+    if (match) return JSON.parse(match[0]);
+    return null;
+  } catch(e) { console.error('JSON parse failed:', e, 'Raw:', text?.slice(0, 200)); return null; }
+}
+
+// ═══════════════════════════════════════════════════════
+// AI FEATURES — Parse, Suggest, Digest, Agentic
+// ═══════════════════════════════════════════════════════
+async function aiParseNL(text) {
+  const today = new Date().toISOString().split('T')[0];
+  const dayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+  const prompt = `Today is ${today} (${dayName}). Parse this reminder into JSON only, no markdown:\n"${text}"\nReturn exactly: {"title":"...","desc":"...","date":"YYYY-MM-DD","time":"HH:MM","priority":"high|medium|low","recur":"none|daily|weekly|monthly"}\nRules: no date=today(${today}), no time=09:00, "tomorrow"=add 1 day, "next Monday"=calc date, infer priority from urgency.`;
+  return parseAIJSON(await callAI_unified(prompt));
+}
+
+async function aiSuggestTitle(title) {
+  const prompt = `Improve this reminder title to be clearer and actionable. Return JSON only:\n"${title}"\nReturn: {"improvedTitle":"...","priority":"high|medium|low","priorityReason":"one sentence"}`;
+  return parseAIJSON(await callAI_unified(prompt));
 }
 
 async function fetchDigest(userId) {
   const today = new Date().toISOString().split('T')[0];
-  const { data: rems } = await sb.from('reminders').select('*').eq('user_id', userId).eq('completed', false).eq('date', today);
-  if (!rems?.length) return "🎉 No reminders for today — enjoy your day!";
-  const key = localStorage.getItem('rm_gemini_key') || GEMINI_API_KEY;
-  if (!key) return "✨ Add Gemini API key in Settings to get AI summaries. Today's reminders:\n" + rems.map(r=>`• ${r.title} at ${r.time||'anytime'}`).join('\n');
-  const list = rems.map((r,i)=>`${i+1}. ${r.title} at ${r.time||'anytime'} (${r.priority} priority)`).join('\n');
-  const text = await callGeminiDirect(`Summarize these today's reminders in 3-4 friendly sentences with emojis. Be motivating:\n${list}`);
-  return text || rems.map(r=>`• ${r.title} at ${r.time||'anytime'}`).join('\n');
+  const { data: rems } = await sb.from('reminders').select('*').eq('user_id', userId).eq('completed', false);
+  const upcoming = (rems || []).filter(r => { if (!r.date) return false; const diff = (new Date(r.date) - new Date(today)) / 86400000; return diff >= 0 && diff <= 3; });
+  if (!upcoming.length) return "🎉 No reminders for the next 3 days — enjoy your time!";
+  if (!hasAnyAIKey()) return "✨ Add an AI key in Settings for smart summaries.\n\nYour upcoming reminders:\n" + upcoming.map(r => `• ${r.title} — ${r.date} at ${r.time||'anytime'}`).join('\n');
+  const list = upcoming.map((r,i) => `${i+1}. ${r.title} on ${r.date} at ${r.time||'anytime'} (${r.priority})`).join('\n');
+  const text = await callAI_unified(`Summarize these upcoming reminders in 4-5 friendly sentences with emojis. Group by urgency:\n${list}`);
+  return text || upcoming.map(r => `• ${r.title} — ${r.date} at ${r.time||'anytime'}`).join('\n');
+}
+
+// Agentic: Smart analysis
+async function fetchAgentInsights(userId) {
+  if (!hasAnyAIKey()) return null;
+  const today = new Date().toISOString().split('T')[0];
+  const { data: rems } = await sb.from('reminders').select('*').eq('user_id', userId).eq('completed', false);
+  if (!rems?.length) return null;
+  const overdue = rems.filter(r => r.date && r.date < today);
+  const todayCount = rems.filter(r => r.date === today).length;
+  if (overdue.length === 0 && todayCount <= 3) return null;
+  const list = rems.slice(0, 20).map(r => `"${r.title}" on ${r.date} at ${r.time} (${r.priority})`).join('\n');
+  const prompt = `You are a productivity agent. Today is ${today}. Analyze and give brief advice (3-4 sentences max, with emojis). Focus on: ${overdue.length} overdue items, ${todayCount} items today. Be specific:\n${list}`;
+  return await callAI_unified(prompt);
+}
+
+// Agentic: Follow-up suggestions after completing a reminder
+async function fetchFollowUps(title, desc) {
+  if (!hasAnyAIKey()) return null;
+  const prompt = `Task just completed: "${title}" (${desc || 'no details'}). Suggest 1-2 natural follow-up tasks. Return JSON only:\n{"followUps":[{"title":"...","desc":"...","daysFromNow":1,"priority":"medium"}]}`;
+  return parseAIJSON(await callAI_unified(prompt));
 }
 
 // ═══════════════════════════════════════════════════════
@@ -661,13 +657,11 @@ async function fetchDigest(userId) {
 // ═══════════════════════════════════════════════════════
 function tick() {
   const n = new Date();
-  const el = document.getElementById('clockEl');
-  const de = document.getElementById('dateEl');
+  const el = document.getElementById('clockEl'), de = document.getElementById('dateEl');
   if (el) el.textContent = n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
   if (de) de.textContent = n.toLocaleDateString('en-IN',{weekday:'short',month:'short',day:'numeric'});
 }
 setInterval(tick, 1000);
-document.addEventListener('DOMContentLoaded', tick);
 
 // ═══════════════════════════════════════════════════════
 // AUTH
@@ -685,29 +679,17 @@ async function doLogin() {
   if (!username || !password) { toast('Please enter username and password', 'error'); return; }
   try {
     const hashed = await hashPassword(password);
-    console.log('Attempting login for:', username, '| hashed:', hashed.slice(0,10)+'...');
-
-    // Try hashed password first
     let { data, error } = await sb.from('users').select('*').eq('username', username).eq('password', hashed).single();
-    console.log('Hashed login result:', data ? 'found' : 'not found', error?.message || '');
-
-    // Fallback: try plain text
     if (error || !data) {
       const res2 = await sb.from('users').select('*').eq('username', username).eq('password', password).single();
-      console.log('Plain login result:', res2.data ? 'found' : 'not found', res2.error?.message || '');
-      if (res2.error || !res2.data) throw new Error('Invalid credentials');
+      if (res2.error || !res2.data) throw new Error('Invalid');
       data = res2.data;
-      // Auto-migrate to hashed
       await sb.from('users').update({ password: hashed }).eq('id', data.id);
-      console.log('Migrated to hashed password');
     }
     const { password: _, ...safe } = data;
     currentUser = safe;
     enterApp();
-  } catch(e) {
-    console.error('Login error:', e.message);
-    toast('Invalid username or password', 'error');
-  }
+  } catch(e) { toast('Invalid username or password', 'error'); }
 }
 
 async function doRegister() {
@@ -715,13 +697,14 @@ async function doRegister() {
   const username = document.getElementById('regUser').value.trim();
   const password = document.getElementById('regPass').value;
   if (!name||!username||!password) { toast('Please fill all fields','error'); return; }
+  if (password.length < 6) { toast('Password must be at least 6 characters','error'); return; }
   try {
     const existing = await sb.from('users').select('id').eq('username', username).maybeSingle();
     if (existing.data) { toast('Username already taken', 'error'); return; }
     const hashed = await hashPassword(password);
     const newUser = { id: 'u_' + Date.now(), username, password: hashed, name, role: 'user' };
     const { error } = await sb.from('users').insert(newUser);
-    if (error) throw new Error('Registration failed');
+    if (error) throw error;
     const { password: _, ...safe } = newUser;
     currentUser = safe;
     toast('Account created! Welcome 🎉','success');
@@ -730,7 +713,6 @@ async function doRegister() {
 }
 
 function enterApp() {
-  // Save session to localStorage
   localStorage.setItem('rm_session', JSON.stringify(currentUser));
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'block';
@@ -738,27 +720,18 @@ function enterApp() {
   document.getElementById('sidebarName').textContent = currentUser.name;
   document.getElementById('sidebarRole').textContent = currentUser.role === 'admin' ? '⭐ Administrator' : 'Member';
   document.getElementById('adminNav').style.display = currentUser.role === 'admin' ? 'block' : 'none';
-  document.getElementById('configBanner').style.display = 'none';
   currentTab = 'dashboard';
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-  const first = document.querySelector('#sidebar .nav-item');
-  if (first) first.classList.add('active');
+  document.querySelector('#sidebar .nav-item')?.classList.add('active');
   document.getElementById('pageTitle').textContent = 'Dashboard';
   renderPage();
   tick();
 }
 
-// Auto-login from saved session on page load
 function tryAutoLogin() {
   const saved = localStorage.getItem('rm_session');
   if (!saved) return;
-  try {
-    const user = JSON.parse(saved);
-    if (user && user.id && user.username) {
-      currentUser = user;
-      enterApp();
-    }
-  } catch(e) { localStorage.removeItem('rm_session'); }
+  try { const user = JSON.parse(saved); if (user?.id) { currentUser = user; enterApp(); } } catch(e) { localStorage.removeItem('rm_session'); }
 }
 
 function doLogout() {
@@ -766,9 +739,37 @@ function doLogout() {
   localStorage.removeItem('rm_session');
   document.getElementById('appScreen').style.display = 'none';
   document.getElementById('authScreen').style.display = 'flex';
-  document.getElementById('configBanner').style.display = 'none';
-  const lu=document.getElementById('loginUser'); const lp=document.getElementById('loginPass');
-  if(lu) lu.value=''; if(lp) lp.value='';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+// ═══════════════════════════════════════════════════════
+// PASSWORD CHANGE
+// ═══════════════════════════════════════════════════════
+function openPasswordModal() { document.getElementById('passwordModal').classList.add('open'); document.getElementById('pwCurrent').value=''; document.getElementById('pwNew').value=''; document.getElementById('pwConfirm').value=''; }
+function closePasswordModal() { document.getElementById('passwordModal').classList.remove('open'); }
+
+async function doChangePassword() {
+  const current = document.getElementById('pwCurrent').value;
+  const newPw = document.getElementById('pwNew').value;
+  const confirm = document.getElementById('pwConfirm').value;
+  if (!current || !newPw || !confirm) { toast('Fill all fields', 'error'); return; }
+  if (newPw.length < 6) { toast('New password must be at least 6 characters', 'error'); return; }
+  if (newPw !== confirm) { toast('Passwords do not match!', 'error'); return; }
+  
+  try {
+    // Verify current password
+    const hashedCurrent = await hashPassword(current);
+    const { data: user } = await sb.from('users').select('password').eq('id', currentUser.id).single();
+    if (!user || (user.password !== hashedCurrent && user.password !== current)) {
+      toast('Current password is wrong', 'error'); return;
+    }
+    // Update to new hashed password
+    const hashedNew = await hashPassword(newPw);
+    await sb.from('users').update({ password: hashedNew }).eq('id', currentUser.id);
+    toast('Password updated successfully! 🔑', 'success');
+    closePasswordModal();
+  } catch(e) { toast('Failed: ' + e.message, 'error'); }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -780,10 +781,8 @@ function closeSidebar() { document.getElementById('sidebar').classList.remove('o
 function navTo(tab, el) {
   currentTab = tab; closeSidebar();
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-  if (el && el.classList) el.classList.add('active');
-  const titles = { dashboard:'Dashboard', reminders:'My Reminders', pending:'Pending Reminders',
-    completed:'Completed', history:'History', contacts:'Contacts', settings:'Settings',
-    users:'Manage Users', allreminders:'All Reminders', logs:'System Logs' };
+  if (el?.classList) el.classList.add('active');
+  const titles = { dashboard:'Dashboard', reminders:'My Reminders', pending:'Pending Reminders', completed:'Completed', history:'History', contacts:'Contacts', settings:'Settings', users:'Manage Users', allreminders:'All Reminders', logs:'System Logs' };
   document.getElementById('pageTitle').textContent = titles[tab] || tab;
   renderPage();
 }
@@ -791,15 +790,14 @@ function navTo(tab, el) {
 function updateBadges() {
   if (!currentUser) return;
   getMyReminders().then(rems => {
-    const allEl = document.getElementById('nb_all');
-    const pendEl = document.getElementById('nb_pending');
-    if (allEl) allEl.textContent = rems.length;
-    if (pendEl) pendEl.textContent = rems.filter(r=>!r.completed).length;
+    const a = document.getElementById('nb_all'), p = document.getElementById('nb_pending');
+    if (a) a.textContent = rems.length;
+    if (p) p.textContent = rems.filter(r=>!r.completed).length;
   });
 }
 
 // ═══════════════════════════════════════════════════════
-// DATA FETCHERS (Supabase direct)
+// DATA FETCHERS
 // ═══════════════════════════════════════════════════════
 async function getMyReminders() {
   const { data } = await sb.from('reminders').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
@@ -818,28 +816,21 @@ async function getMyContacts() {
 // PAGE RENDER
 // ═══════════════════════════════════════════════════════
 async function renderPage() {
-  const body = document.getElementById('pageBody');
-  const actions = document.getElementById('topbarActions');
+  const body = document.getElementById('pageBody'), actions = document.getElementById('topbarActions');
   actions.innerHTML = '';
   body.innerHTML = '<div class="empty"><div class="spinner dark" style="width:28px;height:28px;margin:0 auto"></div></div>';
 
-  if (currentTab === 'dashboard') { await renderDashboard(body); }
+  if (currentTab === 'dashboard') await renderDashboard(body);
   else if (['reminders','pending','completed'].includes(currentTab)) {
     actions.innerHTML = `<button class="topbar-btn blue" onclick="openReminderModal()">+ New Reminder</button>`;
     await renderRemindersList(body);
   }
-  else if (currentTab === 'history') { renderHistory(body); }
-  else if (currentTab === 'contacts') {
-    actions.innerHTML = `<button class="topbar-btn" onclick="openContactModal()">+ Add Contact</button>`;
-    await renderContacts(body);
-  }
-  else if (currentTab === 'settings') { renderSettings(body); }
-  else if (currentTab === 'users' && currentUser.role === 'admin') {
-    actions.innerHTML = `<button class="topbar-btn blue" onclick="openUserModal()">+ Add User</button>`;
-    await renderUsers(body);
-  }
-  else if (currentTab === 'allreminders' && currentUser.role === 'admin') { await renderAllReminders(body); }
-  else if (currentTab === 'logs' && currentUser.role === 'admin') { await renderLogs(body); }
+  else if (currentTab === 'history') renderHistory(body);
+  else if (currentTab === 'contacts') { actions.innerHTML = `<button class="topbar-btn" onclick="openContactModal()">+ Add Contact</button>`; await renderContacts(body); }
+  else if (currentTab === 'settings') renderSettings(body);
+  else if (currentTab === 'users' && currentUser.role === 'admin') { actions.innerHTML = `<button class="topbar-btn blue" onclick="openUserModal()">+ Add User</button>`; await renderUsers(body); }
+  else if (currentTab === 'allreminders' && currentUser.role === 'admin') await renderAllReminders(body);
+  else if (currentTab === 'logs' && currentUser.role === 'admin') await renderLogs(body);
   updateBadges();
 }
 
@@ -851,13 +842,12 @@ async function renderDashboard(body) {
   const upcoming = rems.filter(r=>!r.completed).sort((a,b)=>new Date(a.date+' '+a.time)-new Date(b.date+' '+b.time)).slice(0,5);
 
   body.innerHTML = `
-  <div id="digestSection">
-    <div class="digest-card">
-      <div class="digest-title">✨ AI Daily Digest</div>
-      <div class="digest-text digest-loading"><span class="spinner"></span> Generating your daily summary...</div>
-      <button class="digest-btn" onclick="loadDigest()">🔄 Refresh</button>
-    </div>
+  <div class="digest-card">
+    <div class="digest-title">✨ AI Daily Digest</div>
+    <div class="digest-text" id="digestText"><span class="spinner"></span> Generating summary...</div>
+    <button class="digest-btn" onclick="loadDigest()">🔄 Refresh</button>
   </div>
+  <div id="agentInsights"></div>
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-card-top"><div class="stat-icon-wrap blue">📋</div></div><div class="stat-value">${total}</div><div class="stat-label">Total Reminders</div></div>
     <div class="stat-card"><div class="stat-card-top"><div class="stat-icon-wrap amber">⏳</div></div><div class="stat-value" style="color:var(--amber)">${pending}</div><div class="stat-label">Pending</div></div>
@@ -870,18 +860,29 @@ async function renderDashboard(body) {
       <button class="topbar-btn blue" onclick="openReminderModal()" style="padding:7px 14px;font-size:12px">+ Add New</button>
     </div>
     <div class="section-body">
-      ${upcoming.length ? '<div class="reminder-list">' + upcoming.map(r=>remCardHTML(r)).join('') + '</div>' : '<div class="empty"><div class="empty-icon">🎉</div><p>All caught up! No pending reminders.</p></div>'}
+      ${upcoming.length ? '<div class="reminder-list">'+upcoming.map(r=>remCardHTML(r)).join('')+'</div>' : '<div class="empty"><div class="empty-icon">🎉</div><p>All caught up!</p></div>'}
     </div>
   </div>`;
   loadDigest();
+  loadAgentInsights();
 }
 
 async function loadDigest() {
-  const el = document.querySelector('.digest-text');
+  const el = document.getElementById('digestText');
   if (!el) return;
   el.innerHTML = '<span class="spinner"></span> Generating...';
-  const text = await fetchDigest(currentUser.id);
-  el.innerHTML = text;
+  el.textContent = await fetchDigest(currentUser.id);
+}
+
+async function loadAgentInsights() {
+  const el = document.getElementById('agentInsights');
+  if (!el) return;
+  const insight = await fetchAgentInsights(currentUser.id);
+  if (!insight) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="agent-card">
+    <div class="agent-title">🤖 AI Agent Insights</div>
+    <div class="agent-text">${insight}</div>
+  </div>`;
 }
 
 // ── Reminders List ──
@@ -889,15 +890,16 @@ async function renderRemindersList(body) {
   let rems = await getMyReminders();
   if (currentTab === 'pending') rems = rems.filter(r=>!r.completed);
   if (currentTab === 'completed') rems = rems.filter(r=>r.completed);
+  const aiReady = hasAnyAIKey();
 
   body.innerHTML = `
   <div class="ai-input-wrap">
-    <div class="ai-input-label">✨ AI Smart Add</div>
+    <div class="ai-input-label">✨ AI Smart Add ${aiReady ? '<span class="ai-status ready">● Ready</span>' : '<span class="ai-status nokey">⚠ No AI Key</span>'}</div>
     <div class="ai-input-row">
-      <input type="text" class="ai-input" id="aiQuickInput" placeholder='e.g. "Remind me to pay electricity bill on 30th at 10am"' />
+      <input type="text" class="ai-input" id="aiQuickInput" placeholder='e.g. "Remind me to pay electricity bill on 30th at 10am"' onkeydown="if(event.key==='Enter')runAIQuickAdd()" />
       <button class="ai-parse-btn" onclick="runAIQuickAdd()">✨ Add with AI</button>
     </div>
-    <div class="ai-hint">AI will create a reminder from natural language and open the form pre-filled</div>
+    <div class="ai-hint">${aiReady ? 'AI will parse your text and pre-fill the reminder form' : 'Go to Settings → add a Gemini or OpenAI key to enable AI'}</div>
   </div>
   <div class="section-card">
     <div class="section-head">
@@ -906,7 +908,7 @@ async function renderRemindersList(body) {
         <button class="filter-chip ${activeFilter==='high'?'active':''}" onclick="setFilter('high',this)">🔥 High</button>
         <button class="filter-chip ${activeFilter==='medium'?'active':''}" onclick="setFilter('medium',this)">⚡ Medium</button>
         <button class="filter-chip ${activeFilter==='low'?'active':''}" onclick="setFilter('low',this)">🟢 Low</button>
-        <button class="filter-chip ${activeFilter==='whatsapp'?'active':''}" onclick="setFilter('whatsapp',this)">💬 WhatsApp</button>
+        <button class="filter-chip ${activeFilter==='whatsapp'?'active':''}" onclick="setFilter('whatsapp',this)">💬 WA</button>
         <button class="filter-chip ${activeFilter==='email'?'active':''}" onclick="setFilter('email',this)">📧 Email</button>
       </div>
       <div class="search-wrap"><span style="color:var(--textLight)">🔍</span><input type="text" placeholder="Search..." value="${searchQ}" oninput="doSearch(this.value)" /></div>
@@ -921,32 +923,29 @@ function renderFilteredRems(rems) {
     if (['high','medium','low'].includes(activeFilter)) list = list.filter(r=>r.priority===activeFilter);
     if (['whatsapp','email'].includes(activeFilter)) list = list.filter(r=>r.platform===activeFilter||r.platform==='both');
   }
-  if (searchQ) { const q=searchQ.toLowerCase(); list=list.filter(r=>r.title.toLowerCase().includes(q)||(r.desc||'').toLowerCase().includes(q)); }
-  list.sort((a,b)=>{const p={high:0,medium:1,low:2}; return p[a.priority]-p[b.priority]||new Date(a.date+' '+a.time)-new Date(b.date+' '+b.time);});
-  if (!list.length) return '<div class="empty"><div class="empty-icon">🔕</div><p>No reminders match your filter.</p></div>';
+  if (searchQ) { const q=searchQ.toLowerCase(); list=list.filter(r=>(r.title||'').toLowerCase().includes(q)||(r.description||'').toLowerCase().includes(q)); }
+  list.sort((a,b)=>{const p={high:0,medium:1,low:2}; return (p[a.priority]||1)-(p[b.priority]||1)||new Date(a.date+' '+(a.time||''))-new Date(b.date+' '+(b.time||''));});
+  if (!list.length) return '<div class="empty"><div class="empty-icon">🔕</div><p>No reminders match.</p></div>';
   return '<div class="reminder-list">' + list.map(r=>remCardHTML(r)).join('') + '</div>';
 }
 
 function remCardHTML(r) {
-  const pE={whatsapp:'💬',email:'📧',both:'🔔'};
-  const rE={daily:'🔁',weekly:'📅',monthly:'🗓️'};
+  const pE={whatsapp:'💬',email:'📧',both:'🔔'}, rE={daily:'🔁',weekly:'📅',monthly:'🗓️'};
   const dt = r.date ? `${r.date}${r.time?' '+r.time:''}` : 'No date';
-  const contacts = LS.get('rm_contacts') || {};
-  const userContacts = contacts[currentUser.id] || [];
-  const selC = (r.contact_ids||r.contactIds||[]).map(id=>userContacts.find(c=>c.id===id)).filter(Boolean);
+  const isOverdue = r.date && !r.completed && r.date < new Date().toISOString().split('T')[0];
   return `
-  <div class="rem-card ${r.completed?'completed':''}" id="rc_${r.id}">
+  <div class="rem-card ${r.completed?'completed':''}" style="${isOverdue?'border-color:var(--red);background:var(--redLight)':''}">
     <div class="priority-dot ${r.priority}"></div>
     <button class="rem-check ${r.completed?'done':''}" onclick="toggleDone('${r.id}')">✓</button>
     <div class="rem-body">
-      <div class="rem-title">${r.title}</div>
-      ${r.desc?`<div class="rem-desc">${r.desc}</div>`:''}
+      <div class="rem-title">${r.title}${isOverdue?' <span style="font-size:11px;color:var(--red)">⚠ OVERDUE</span>':''}</div>
+      ${r.description?`<div class="rem-desc">${r.description}</div>`:''}
       <div class="rem-tags">
         <span class="tag blue">📅 ${dt}</span>
         <span class="tag navy">${pE[r.platform]||'🔔'} ${r.platform}</span>
         <span class="tag ${r.priority==='high'?'red':r.priority==='medium'?'amber':'green'}">${r.priority}</span>
         ${r.recur&&r.recur!=='none'?`<span class="tag green">${rE[r.recur]} ${r.recur}</span>`:''}
-        ${selC.map(c=>`<span class="tag purple">👤 ${c.name}</span>`).join('')}
+        ${r.notified?'<span class="tag green">📤 Sent</span>':''}
       </div>
     </div>
     <div class="rem-actions">
@@ -957,12 +956,7 @@ function remCardHTML(r) {
   </div>`;
 }
 
-function setFilter(f, btn) {
-  activeFilter = f;
-  document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  refreshRemList();
-}
+function setFilter(f, btn) { activeFilter = f; document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); refreshRemList(); }
 function doSearch(q) { searchQ = q; refreshRemList(); }
 async function refreshRemList() {
   const el = document.getElementById('remList'); if (!el) return;
@@ -977,195 +971,131 @@ function renderHistory(body) {
   const h = LS.get('rm_history') || [];
   const mine = currentUser.role==='admin' ? h : h.filter(x=>x.userId===currentUser.id);
   if (!mine.length) { body.innerHTML = '<div class="empty"><div class="empty-icon">🗂️</div><p>No history yet.</p></div>'; return; }
-  body.innerHTML = [...mine].reverse().map(x=>`
-    <div class="hist-item">
-      <div class="hist-icon">${x.icon}</div>
-      <div class="hist-body"><div class="hist-title">${x.title}</div><div class="hist-time">${x.time}</div></div>
-      <span class="hist-badge ${x.status}">${x.status}</span>
-    </div>`).join('');
+  body.innerHTML = [...mine].reverse().slice(0,50).map(x=>`<div class="hist-item"><div class="hist-icon">${x.icon}</div><div class="hist-body"><div class="hist-title">${x.title}</div><div class="hist-time">${x.time}</div></div><span class="hist-badge ${x.status}">${x.status}</span></div>`).join('');
 }
-
-function addHistory(icon, title, status) {
-  const h = LS.get('rm_history') || [];
-  h.unshift({ icon, title, status, time:new Date().toLocaleString('en-IN'), userId:currentUser.id });
-  if (h.length > 200) h.splice(200);
-  LS.set('rm_history', h);
-}
+function addHistory(icon, title, status) { const h=LS.get('rm_history')||[]; h.unshift({icon,title,status,time:new Date().toLocaleString('en-IN'),userId:currentUser.id}); if(h.length>200)h.splice(200); LS.set('rm_history',h); }
 
 // ── Contacts ──
 async function renderContacts(body) {
   const contacts = await getMyContacts();
-  if (!contacts.length) { body.innerHTML = `<div class="empty" style="padding:60px 20px"><div class="empty-icon">📱</div><p>No contacts yet. Add contacts to quickly select them when creating reminders.</p></div>`; return; }
+  if (!contacts.length) { body.innerHTML = `<div class="empty" style="padding:60px 20px"><div class="empty-icon">📱</div><p>No contacts yet. Add contacts to select them when creating reminders.</p></div>`; return; }
   body.innerHTML = `<div class="contacts-grid">${contacts.map(c=>`
-    <div class="contact-card">
-      <div class="contact-name">👤 ${c.name}</div>
-      ${c.phone?`<div class="contact-detail"><span>💬</span>${c.phone}</div>`:''}
-      ${c.email?`<div class="contact-detail"><span>📧</span>${c.email}</div>`:''}
-      <div class="contact-actions">
-        <button class="icon-btn" onclick="editContact('${c.id}')">✏️</button>
-        <button class="icon-btn danger" onclick="deleteContact('${c.id}')">🗑️</button>
-      </div>
-    </div>`).join('')}</div>`;
+    <div class="contact-card"><div class="contact-name">👤 ${c.name}</div>${c.phone?`<div class="contact-detail"><span>💬</span>${c.phone}</div>`:''}${c.email?`<div class="contact-detail"><span>📧</span>${c.email}</div>`:''}
+    <div class="contact-actions"><button class="icon-btn" onclick="editContact('${c.id}')">✏️</button><button class="icon-btn danger" onclick="deleteContact('${c.id}')">🗑️</button></div></div>`).join('')}</div>`;
 }
 
 // ── Settings ──
 function renderSettings(body) {
-  const saved = localStorage.getItem('rm_api_base') || '';
   const geminiKey = localStorage.getItem('rm_gemini_key') || '';
+  const openaiKey = localStorage.getItem('rm_openai_key') || '';
+  const openaiModel = localStorage.getItem('rm_openai_model') || 'gpt-4o-mini';
+  const preferred = localStorage.getItem('rm_ai_provider') || 'gemini';
+  const apiBase = localStorage.getItem('rm_api_base') || '';
+
   body.innerHTML = `
   <div class="section-card">
-    <div class="section-head"><div class="section-title">⚙️ Configuration</div></div>
+    <div class="section-head"><div class="section-title">🤖 AI Configuration</div></div>
     <div class="section-body">
       <div class="settings-section">
-        <div class="settings-label">✨ Gemini AI Key (for AI features)</div>
+        <div class="settings-label">Preferred AI Provider</div>
         <div class="settings-row">
-          <div class="settings-row-info">
-            <div class="settings-row-label">Gemini API Key</div>
-            <div class="settings-row-sub">Get free key from <a href="https://aistudio.google.com" target="_blank" style="color:var(--blue)">aistudio.google.com</a> → Get API Key</div>
-          </div>
+          <div class="settings-row-info"><div class="settings-row-label">Primary Provider</div><div class="settings-row-sub">Will fallback to the other if primary fails</div></div>
+          <select class="settings-input" id="aiProviderSel" style="font-family:var(--font)">
+            <option value="gemini" ${preferred==='gemini'?'selected':''}>🔮 Gemini (Google)</option>
+            <option value="openai" ${preferred==='openai'?'selected':''}>🧠 OpenAI (GPT)</option>
+          </select>
+          <button class="settings-save-btn" onclick="localStorage.setItem('rm_ai_provider',document.getElementById('aiProviderSel').value);toast('Provider saved!','success')">Save</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">🔮 Google Gemini Key (Free)</div>
+        <div class="settings-row">
+          <div class="settings-row-info"><div class="settings-row-label">Gemini API Key</div><div class="settings-row-sub">Get free key from <a href="https://aistudio.google.com" target="_blank" style="color:var(--blue)">aistudio.google.com</a></div></div>
           <input type="password" class="settings-input" id="geminiKeyInput" value="${geminiKey}" placeholder="AIza..." />
-          <button class="settings-save-btn" onclick="saveGeminiKey()">Save</button>
-          <button class="settings-save-btn" id="testGeminiBtn" onclick="testGeminiKey()" style="background:var(--green);margin-left:6px">🧪 Test</button>
+          <button class="settings-save-btn" onclick="localStorage.setItem('rm_gemini_key',document.getElementById('geminiKeyInput').value.trim());toast('Gemini key saved!','success')">Save</button>
+          <button class="settings-save-btn" onclick="testGemini()" style="background:var(--green)">🧪 Test</button>
         </div>
       </div>
       <div class="settings-section">
-        <div class="settings-label">Backend API URL (optional)</div>
+        <div class="settings-label">🧠 OpenAI Key (Paid)</div>
         <div class="settings-row">
-          <div class="settings-row-info">
-            <div class="settings-row-label">API Base URL</div>
-            <div class="settings-row-sub">Only needed if you deploy backend separately (Railway/Render)</div>
-          </div>
-          <input type="text" class="settings-input" id="apiUrlInput" value="${saved}" placeholder="https://your-backend.railway.app" />
-          <button class="settings-save-btn" onclick="saveApiUrl()">Save</button>
+          <div class="settings-row-info"><div class="settings-row-label">OpenAI API Key</div><div class="settings-row-sub">Get from <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--blue)">platform.openai.com</a></div></div>
+          <input type="password" class="settings-input" id="openaiKeyInput" value="${openaiKey}" placeholder="sk-..." />
+          <button class="settings-save-btn" onclick="localStorage.setItem('rm_openai_key',document.getElementById('openaiKeyInput').value.trim());toast('OpenAI key saved!','success')">Save</button>
+          <button class="settings-save-btn" onclick="testOpenAI()" style="background:var(--green)">🧪 Test</button>
+        </div>
+        <div class="settings-row" style="margin-top:4px">
+          <div class="settings-row-info"><div class="settings-row-label">OpenAI Model</div><div class="settings-row-sub">gpt-4o-mini is cheapest, gpt-4o is best</div></div>
+          <select class="settings-input" id="openaiModelSel" style="font-family:var(--font)">
+            <option value="gpt-4o-mini" ${openaiModel==='gpt-4o-mini'?'selected':''}>gpt-4o-mini (cheapest)</option>
+            <option value="gpt-4o" ${openaiModel==='gpt-4o'?'selected':''}>gpt-4o (best)</option>
+            <option value="gpt-3.5-turbo" ${openaiModel==='gpt-3.5-turbo'?'selected':''}>gpt-3.5-turbo (legacy)</option>
+          </select>
+          <button class="settings-save-btn" onclick="localStorage.setItem('rm_openai_model',document.getElementById('openaiModelSel').value);toast('Model saved!','success')">Save</button>
         </div>
       </div>
-      <div class="settings-section">
-        <div class="settings-label">How to set up the backend</div>
-        <div style="background:var(--bg);border-radius:10px;padding:16px 20px;font-size:13px;color:var(--textMid);line-height:1.8">
-          <strong>Step 1:</strong> Fork the RemindMe repo on GitHub<br>
-          <strong>Step 2:</strong> Add these GitHub Secrets (Settings → Secrets → Actions):<br>
-          <code style="background:var(--navy);color:#22d3a5;padding:2px 6px;border-radius:4px;font-size:12px">AISENSY_API_KEY</code>
-          <code style="background:var(--navy);color:#22d3a5;padding:2px 6px;border-radius:4px;font-size:12px">AISENSY_CAMPAIGN_NAME</code>
-          <code style="background:var(--navy);color:#22d3a5;padding:2px 6px;border-radius:4px;font-size:12px">OUTLOOK_EMAIL</code>
-          <code style="background:var(--navy);color:#22d3a5;padding:2px 6px;border-radius:4px;font-size:12px">OUTLOOK_PASSWORD</code>
-          <code style="background:var(--navy);color:#22d3a5;padding:2px 6px;border-radius:4px;font-size:12px">GEMINI_API_KEY</code>
-          <code style="background:var(--navy);color:#22d3a5;padding:2px 6px;border-radius:4px;font-size:12px">GH_PAT</code><br>
-          <strong>Step 3:</strong> Deploy backend to Railway → paste URL above<br>
-          <strong>Step 4:</strong> Enable GitHub Actions in your repo
-        </div>
+    </div>
+  </div>
+  <div class="section-card">
+    <div class="section-head"><div class="section-title">🔑 Account</div></div>
+    <div class="section-body">
+      <div class="settings-row">
+        <div class="settings-row-info"><div class="settings-row-label">Change Password</div><div class="settings-row-sub">Update your login password</div></div>
+        <button class="settings-save-btn" onclick="openPasswordModal()" style="background:var(--navy)">🔑 Change Password</button>
+      </div>
+    </div>
+  </div>
+  <div class="section-card">
+    <div class="section-head"><div class="section-title">⚙️ Backend (Optional)</div></div>
+    <div class="section-body">
+      <div class="settings-row">
+        <div class="settings-row-info"><div class="settings-row-label">API Base URL</div><div class="settings-row-sub">Only if you deploy backend separately (Railway/Render)</div></div>
+        <input type="text" class="settings-input" id="apiUrlInput" value="${apiBase}" placeholder="https://your-backend.railway.app" />
+        <button class="settings-save-btn" onclick="localStorage.setItem('rm_api_base',document.getElementById('apiUrlInput').value.trim().replace(/\\/$/,''));toast('Saved!','success')">Save</button>
       </div>
     </div>
   </div>`;
 }
 
-function saveGeminiKey() {
+async function testGemini() {
   const key = document.getElementById('geminiKeyInput').value.trim();
+  if (!key) { toast('Enter a key first!', 'error'); return; }
   localStorage.setItem('rm_gemini_key', key);
-  toast(key ? 'Gemini API key saved! ✨ AI features enabled.' : 'Gemini key cleared.', 'success');
+  toast('Testing Gemini...', 'info');
+  const result = await callGemini('Say "hello" in JSON: {"message":"hello"}');
+  if (result) toast('✅ Gemini is working!', 'success');
+  else toast('❌ Gemini failed — check your key', 'error');
 }
 
-// Auto-detect working Gemini model for this API key
-async function detectGeminiModel(key) {
-  const models = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-3-flash-preview', 'gemini-2.0-flash'];
-  for (const model of models) {
-    try {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: 'hi' }] }] })
-      });
-      const data = await res.json();
-      if (!data.error) { console.log('Working model found:', model); return model; }
-    } catch(e) {}
-  }
-  return null;
-}
-
-// Test Gemini key
-async function testGeminiKey() {
-  const key = localStorage.getItem('rm_gemini_key');
-  if (!key) { toast('No key saved yet!', 'error'); return; }
-  const btn = document.getElementById('testGeminiBtn');
-  if(btn) { btn.textContent = 'Testing...'; btn.disabled = true; }
-  const model = await detectGeminiModel(key);
-  if(btn) { btn.textContent = '🧪 Test Key'; btn.disabled = false; }
-  if (model) {
-    localStorage.setItem('rm_gemini_model', model);
-    toast(`✅ Gemini working! Using model: ${model}`, 'success');
-  } else {
-    toast('❌ No working model found. Check key at aistudio.google.com', 'error');
-  }
-}
-
-function saveApiUrl() {
-  const url = document.getElementById('apiUrlInput').value.trim().replace(/\/$/, '');
-  localStorage.setItem('rm_api_base', url);
-  toast(url ? 'Backend URL saved! ✅' : 'Cleared.', 'success');
+async function testOpenAI() {
+  const key = document.getElementById('openaiKeyInput').value.trim();
+  if (!key) { toast('Enter a key first!', 'error'); return; }
+  localStorage.setItem('rm_openai_key', key);
+  toast('Testing OpenAI...', 'info');
+  const result = await callOpenAI('Say hello in JSON: {"message":"hello"}');
+  if (result) toast('✅ OpenAI is working!', 'success');
+  else toast('❌ OpenAI failed — check your key', 'error');
 }
 
 // ── Admin: Users ──
 async function renderUsers(body) {
-  const { data: usersData } = await sb.from('users').select('id, username, name, role, created_at');
-  const users = usersData || [];
+  const { data: users } = await sb.from('users').select('id, username, name, role, created_at');
   const rems = await getAllReminders();
-  body.innerHTML = `
-  <div class="section-card" style="overflow:hidden">
-    <div class="section-head"><div class="section-title">👥 All Users (${users.length})</div></div>
-    <div style="overflow-x:auto">
-      <table class="user-table">
-        <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Reminders</th><th>Action</th></tr></thead>
-        <tbody>${users.map(u=>`<tr>
-          <td><strong style="color:var(--navy)">${u.name}</strong></td>
-          <td><span style="font-family:var(--mono);font-size:12px;background:var(--bg);padding:3px 8px;border-radius:5px">${u.username}</span></td>
-          <td><span class="role-badge ${u.role}">${u.role}</span></td>
-          <td><span class="tag blue" style="display:inline-flex">${rems.filter(r=>r.userId===u.id).length} reminders</span></td>
-          <td>${u.username!=='admin'?`<button class="icon-btn danger" onclick="deleteUser('${u.id}')">🗑️</button>`:`<span style="font-size:11px;color:var(--textLight)">🔒 Protected</span>`}</td>
-        </tr>`).join('')}</tbody>
-      </table>
-    </div>
-  </div>`;
+  body.innerHTML = `<div class="section-card" style="overflow:hidden"><div class="section-head"><div class="section-title">👥 All Users (${(users||[]).length})</div></div><div style="overflow-x:auto"><table class="user-table"><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Reminders</th><th>Action</th></tr></thead><tbody>${(users||[]).map(u=>`<tr><td><strong style="color:var(--navy)">${u.name}</strong></td><td><span style="font-family:var(--mono);font-size:12px;background:var(--bg);padding:3px 8px;border-radius:5px">${u.username}</span></td><td><span class="role-badge ${u.role}">${u.role}</span></td><td>${rems.filter(r=>r.user_id===u.id).length}</td><td>${u.username!=='admin'?`<button class="icon-btn danger" onclick="deleteUser('${u.id}')">🗑️</button>`:'🔒'}</td></tr>`).join('')}</tbody></table></div></div>`;
 }
 
-// ── Admin: All Reminders ──
 async function renderAllReminders(body) {
   const rems = await getAllReminders();
-  const { data: usersData2 } = await sb.from('users').select('id, username, name, role');
-  const users = usersData2 || [];
-  if (!rems.length) { body.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>No reminders in system.</p></div>'; return; }
+  const { data: users } = await sb.from('users').select('id, username, name');
+  if (!rems.length) { body.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>No reminders.</p></div>'; return; }
   const pE={whatsapp:'💬',email:'📧',both:'🔔'};
-  body.innerHTML = `<div class="section-card"><div class="section-body"><div class="reminder-list">
-    ${rems.map(r=>{
-      const u=users.find(x=>x.id===r.userId);
-      const dt=r.date?`${r.date}${r.time?' '+r.time:''}` :'No date';
-      return `<div class="rem-card ${r.completed?'completed':''}">
-        <div class="priority-dot ${r.priority}"></div>
-        <div class="rem-body">
-          <div class="rem-title">${r.title} <span style="font-size:11px;font-weight:400;color:var(--textMuted)">— ${u?.name||'Unknown'}</span></div>
-          ${r.desc?`<div class="rem-desc">${r.desc}</div>`:''}
-          <div class="rem-tags">
-            <span class="tag blue">📅 ${dt}</span>
-            <span class="tag navy">${pE[r.platform]||'🔔'} ${r.platform}</span>
-            <span class="tag ${r.priority==='high'?'red':r.priority==='medium'?'amber':'green'}">${r.priority}</span>
-            ${r.completed?'<span class="tag green">✅ Done</span>':''}
-            ${r.notified?'<span class="tag green">📤 Sent</span>':''}
-          </div>
-        </div>
-      </div>`;
-    }).join('')}
-  </div></div></div>`;
+  body.innerHTML = `<div class="section-card"><div class="section-body"><div class="reminder-list">${rems.map(r=>{const u=(users||[]).find(x=>x.id===r.user_id);return `<div class="rem-card ${r.completed?'completed':''}"><div class="priority-dot ${r.priority}"></div><div class="rem-body"><div class="rem-title">${r.title} <span style="font-size:11px;color:var(--textMuted)">— ${u?.name||'?'}</span></div>${r.description?`<div class="rem-desc">${r.description}</div>`:''}<div class="rem-tags"><span class="tag blue">📅 ${r.date||'?'} ${r.time||''}</span><span class="tag navy">${pE[r.platform]||'🔔'}</span><span class="tag ${r.priority==='high'?'red':'amber'}">${r.priority}</span>${r.completed?'<span class="tag green">✅</span>':''}${r.notified?'<span class="tag green">📤</span>':''}</div></div></div>`;}).join('')}</div></div></div>`;
 }
 
-// ── Admin: Logs ──
 async function renderLogs(body) {
   const { data: logs } = await sb.from('logs').select('*').order('created_at', { ascending: false }).limit(100);
   if (!logs?.length) { body.innerHTML = '<div class="empty"><div class="empty-icon">📡</div><p>No logs yet.</p></div>'; return; }
-  body.innerHTML = `<div class="section-card"><div style="max-height:600px;overflow-y:auto">
-    ${logs.map(l=>`
-      <div class="log-item">
-        <span class="log-type ${l.type}">${l.type}</span>
-        <span class="log-msg">${l.message}${l.detail?` <span style="color:var(--textLight)">${l.detail}</span>`:''}</span>
-        <span class="log-time">${new Date(l.created_at).toLocaleString('en-IN')}</span>
-      </div>`).join('')}
-  </div></div>`;
+  body.innerHTML = `<div class="section-card"><div style="max-height:600px;overflow-y:auto">${logs.map(l=>`<div class="log-item"><span class="log-type ${l.type}">${l.type}</span><span class="log-msg">${l.message}${l.detail?` <span style="color:var(--textLight)">${l.detail}</span>`:''}</span><span class="log-time">${new Date(l.created_at).toLocaleString('en-IN')}</span></div>`).join('')}</div></div>`;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1174,21 +1104,21 @@ async function renderLogs(body) {
 async function openReminderModal(id) {
   editingRemId = id || null; selectedContactIds = [];
   let r = null;
-  if (id) {
-    const all = await getMyReminders();
-    r = all.find(x=>x.id===id);
-  }
+  if (id) { const all = await getMyReminders(); r = all.find(x=>x.id===id); }
   document.getElementById('reminderModalTitle').textContent = id ? 'Edit Reminder' : 'New Reminder';
   document.getElementById('fTitle').value = r?.title || '';
-  document.getElementById('fDesc').value = r?.desc || '';
+  document.getElementById('fDesc').value = r?.description || r?.desc || '';
   document.getElementById('fDate').value = r?.date || '';
   document.getElementById('fTime').value = r?.time || '';
   document.getElementById('fPriority').value = r?.priority || 'medium';
   document.getElementById('fRecur').value = r?.recur || 'none';
   document.getElementById('aiNlInput').value = '';
   document.getElementById('suggestBox').classList.remove('show');
-  selectedContactIds = r?.contact_ids ? [...r.contact_ids] : (r?.contactIds ? [...r.contactIds] : []);
+  selectedContactIds = r?.contact_ids ? [...r.contact_ids] : [];
   selectPlat(r?.platform || 'whatsapp', null);
+  // AI status
+  const st = document.getElementById('modalAiStatus');
+  if (st) { st.className = hasAnyAIKey() ? 'ai-status ready' : 'ai-status nokey'; st.textContent = hasAnyAIKey() ? '● Ready' : '⚠ No Key'; }
   await renderChips(); await renderContactDropdown();
   document.getElementById('reminderModal').classList.add('open');
 }
@@ -1197,8 +1127,7 @@ function closeReminderModal() { document.getElementById('reminderModal').classLi
 function selectPlat(p, el) {
   selectedPlatform = p;
   document.querySelectorAll('.plat-card').forEach(c=>c.classList.remove('sel'));
-  const idx = {whatsapp:0,email:1,both:2}[p];
-  document.querySelectorAll('.plat-card')[idx]?.classList.add('sel');
+  document.querySelectorAll('.plat-card')[{whatsapp:0,email:1,both:2}[p]]?.classList.add('sel');
 }
 
 async function saveReminder() {
@@ -1206,103 +1135,78 @@ async function saveReminder() {
   if (!title) { toast('Please enter a title!','error'); return; }
   const btn = document.getElementById('saveReminderBtn');
   btn.disabled = true; btn.textContent = 'Saving...';
-  const rem = {
-    userId: currentUser.id, title,
-    desc: document.getElementById('fDesc').value.trim(),
-    date: document.getElementById('fDate').value,
-    time: document.getElementById('fTime').value,
-    priority: document.getElementById('fPriority').value,
-    recur: document.getElementById('fRecur').value,
-    platform: selectedPlatform,
-    contactIds: [...selectedContactIds],
-    completed: false
-  };
   try {
-    const dbRem = { id: editingRemId || 'r_'+Date.now(), user_id: currentUser.id, title: rem.title, description: rem.desc||'', date: rem.date, time: rem.time, priority: rem.priority, recur: rem.recur, platform: rem.platform, contact_ids: rem.contactIds||[], completed: false, notified: false };
+    const dbRem = { id: editingRemId || 'r_'+Date.now(), user_id: currentUser.id, title, description: document.getElementById('fDesc').value.trim(), date: document.getElementById('fDate').value, time: document.getElementById('fTime').value, priority: document.getElementById('fPriority').value, recur: document.getElementById('fRecur').value, platform: selectedPlatform, contact_ids: [...selectedContactIds], completed: false, notified: false };
     if (editingRemId) {
       const { error } = await sb.from('reminders').update({ title:dbRem.title, description:dbRem.description, date:dbRem.date, time:dbRem.time, priority:dbRem.priority, recur:dbRem.recur, platform:dbRem.platform, contact_ids:dbRem.contact_ids }).eq('id', editingRemId);
       if (error) throw error;
-      addHistory('✏️',`Edited: ${title}`,'edited');
-      toast('Reminder updated!','success');
+      addHistory('✏️',`Edited: ${title}`,'edited'); toast('Updated!','success');
     } else {
       const { error } = await sb.from('reminders').insert(dbRem);
       if (error) throw error;
-      addHistory('➕',`Added: ${title}`,'added');
-      toast('Reminder saved! 🎉','success');
+      addHistory('➕',`Added: ${title}`,'added'); toast('Reminder saved! 🎉','success');
     }
     closeReminderModal(); renderPage();
-  } catch(e) { toast('Failed to save: '+e.message,'error'); }
+  } catch(e) { toast('Failed: '+e.message,'error'); }
   btn.disabled=false; btn.textContent='💾 Save Reminder';
 }
 
 async function editReminder(id) { await openReminderModal(id); }
-
 async function deleteReminder(id) {
-  const all = await getMyReminders();
-  const r = all.find(x=>x.id===id);
+  const all = await getMyReminders(); const r = all.find(x=>x.id===id);
   await sb.from('reminders').delete().eq('id', id);
-  addHistory('🗑️',`Deleted: ${r?.title}`,'deleted');
-  toast('Reminder deleted.','info');
-  renderPage();
+  addHistory('🗑️',`Deleted: ${r?.title}`,'deleted'); toast('Deleted.','info'); renderPage();
 }
 
 async function toggleDone(id) {
-  const all = await getMyReminders();
-  const r = all.find(x=>x.id===id);
-  const newVal = !r.completed;
+  const all = await getMyReminders(); const r = all.find(x=>x.id===id); const newVal = !r.completed;
   await sb.from('reminders').update({ completed: newVal }).eq('id', id);
   addHistory(newVal?'✅':'🔄',`${newVal?'Completed':'Reopened'}: ${r.title}`,newVal?'done':'added');
-  toast(newVal?'Great job! ✅':'Reopened reminder.','success');
+  toast(newVal?'Great job! ✅':'Reopened.','success');
   renderPage();
+  // Agentic: suggest follow-ups on completion
+  if (newVal && hasAnyAIKey()) {
+    const fups = await fetchFollowUps(r.title, r.description);
+    if (fups?.followUps?.length) {
+      const f = fups.followUps[0];
+      const d = new Date(); d.setDate(d.getDate() + (f.daysFromNow||1));
+      toast(`💡 Suggested next: "${f.title}" — tap + to add it`, 'info');
+    }
+  }
 }
 
 // ── Snooze ──
 function openSnooze(id) { snoozeId=id; document.getElementById('snoozeModal').classList.add('open'); }
 function closeSnoozeModal() { document.getElementById('snoozeModal').classList.remove('open'); snoozeId=null; }
 async function doSnooze(mins) {
-  const all = await getMyReminders();
-  const r = all.find(x=>x.id===snoozeId); if (!r) return;
+  const all = await getMyReminders(); const r = all.find(x=>x.id===snoozeId); if (!r) return;
   const n=new Date(); n.setMinutes(n.getMinutes()+mins);
-  const newDate = n.toISOString().split('T')[0];
-  const newTime = n.toTimeString().slice(0,5);
-  await sb.from('reminders').update({ date: newDate, time: newTime, notified: false }).eq('id', snoozeId);
-  addHistory('😴',`Snoozed: ${r.title}`,'snoozed');
-  closeSnoozeModal();
-  toast(`Snoozed for ${mins<60?mins+' min':(mins/60)+' hr'}`,'info');
-  renderPage();
+  await sb.from('reminders').update({ date:n.toISOString().split('T')[0], time:n.toTimeString().slice(0,5), notified:false }).eq('id', snoozeId);
+  addHistory('😴',`Snoozed: ${r.title}`,'snoozed'); closeSnoozeModal();
+  toast(`Snoozed ${mins<60?mins+'m':(mins/60)+'hr'}`,'info'); renderPage();
 }
 
 // ═══════════════════════════════════════════════════════
-// AI FEATURES
+// AI: PARSE & SUGGEST
 // ═══════════════════════════════════════════════════════
-
-// Natural language parse → fill modal form
 async function runAIParse() {
   const text = document.getElementById('aiNlInput').value.trim();
-  if (!text) { toast('Please type something first!', 'info'); return; }
+  if (!text) { toast('Type something first!', 'info'); return; }
   const btn = document.getElementById('aiParseBtn');
   btn.disabled=true; btn.textContent='⏳ Parsing...';
-  try {
-    const result = await callAI('/api/ai/parse', { text, userId:currentUser?.id });
-    btn.disabled=false; btn.textContent='✨ Parse';
-    console.log('Parse result:', result);
-    if (!result) { toast('AI could not parse — try rephrasing', 'error'); return; }
-    if(result.title) document.getElementById('fTitle').value = result.title;
-    if(result.desc) document.getElementById('fDesc').value = result.desc;
-    if(result.date) document.getElementById('fDate').value = result.date;
-    if(result.time) document.getElementById('fTime').value = result.time;
-    if(result.priority) document.getElementById('fPriority').value = result.priority;
-    if(result.recur) document.getElementById('fRecur').value = result.recur;
-    document.getElementById('aiNlInput').value = '';
-    toast('✨ Form filled by AI! Check and save.', 'success');
-  } catch(e) {
-    btn.disabled=false; btn.textContent='✨ Parse';
-    console.error('Parse error:', e);
-    toast('AI parse failed: ' + e.message, 'error');
-  }
+  const result = await aiParseNL(text);
+  btn.disabled=false; btn.textContent='✨ Parse';
+  if (!result) { toast('AI could not parse — try rephrasing', 'error'); return; }
+  if(result.title) document.getElementById('fTitle').value = result.title;
+  if(result.desc) document.getElementById('fDesc').value = result.desc;
+  if(result.date) document.getElementById('fDate').value = result.date;
+  if(result.time) document.getElementById('fTime').value = result.time;
+  if(result.priority) document.getElementById('fPriority').value = result.priority;
+  if(result.recur) document.getElementById('fRecur').value = result.recur;
+  document.getElementById('aiNlInput').value = '';
+  toast('✨ Form filled by AI! Review and save.', 'success');
 }
 
-// Quick add from reminders list page
 async function runAIQuickAdd() {
   const input = document.getElementById('aiQuickInput');
   const text = input?.value?.trim(); if (!text) return;
@@ -1311,23 +1215,20 @@ async function runAIQuickAdd() {
   await runAIParse();
 }
 
-// Debounced title suggestion
 function debounceSuggest(val) {
-  clearTimeout(suggestTimeout);
-  document.getElementById('suggestBox').classList.remove('show');
-  if (!val || val.length < 4 || !API_BASE) return;
-  suggestTimeout = setTimeout(()=>runSuggest(val), 1000);
+  clearTimeout(suggestTimeout); document.getElementById('suggestBox').classList.remove('show');
+  if (!val || val.length < 5 || !hasAnyAIKey()) return;
+  suggestTimeout = setTimeout(()=>runSuggest(val), 1200);
 }
 
 async function runSuggest(title) {
-  const result = await callAI('/api/ai/suggest', { title });
+  const result = await aiSuggestTitle(title);
   if (!result) return;
   lastSuggestion = result;
-  const box = document.getElementById('suggestBox');
-  const txt = document.getElementById('suggestText');
+  const box = document.getElementById('suggestBox'), txt = document.getElementById('suggestText');
   if (!box||!txt) return;
-  const pIcon = {high:'🔥',medium:'⚡',low:'🟢'}[result.priority]||'';
-  txt.innerHTML = `<strong>${pIcon} ${result.improvedTitle}</strong><br><span style="font-size:11px;color:var(--textMuted)">${result.priorityReason}</span>`;
+  const pI = {high:'🔥',medium:'⚡',low:'🟢'}[result.priority]||'';
+  txt.innerHTML = `<strong>${pI} ${result.improvedTitle}</strong><br><span style="font-size:11px;color:var(--textMuted)">${result.priorityReason||''}</span>`;
   box.classList.add('show');
 }
 
@@ -1336,44 +1237,30 @@ function applySuggestion() {
   document.getElementById('fTitle').value = lastSuggestion.improvedTitle;
   document.getElementById('fPriority').value = lastSuggestion.priority;
   document.getElementById('suggestBox').classList.remove('show');
-  toast('Suggestion applied ✓','success');
+  toast('Applied ✓','success');
 }
 
 // ═══════════════════════════════════════════════════════
-// CONTACTS
+// CONTACTS CRUD
 // ═══════════════════════════════════════════════════════
 async function openContactModal(id) {
-  editingContactId = id||null;
-  let c = null;
+  editingContactId = id||null; let c = null;
   if (id) { const contacts=await getMyContacts(); c=contacts.find(x=>x.id===id); }
   document.getElementById('contactModalTitle').textContent = id?'Edit Contact':'Add Contact';
-  document.getElementById('cName').value=c?.name||'';
-  document.getElementById('cPhone').value=c?.phone||'';
-  document.getElementById('cEmail').value=c?.email||'';
+  document.getElementById('cName').value=c?.name||''; document.getElementById('cPhone').value=c?.phone||''; document.getElementById('cEmail').value=c?.email||'';
   document.getElementById('contactModal').classList.add('open');
 }
 function closeContactModal() { document.getElementById('contactModal').classList.remove('open'); }
 
 async function saveContact() {
-  const name=document.getElementById('cName').value.trim();
-  const phone=document.getElementById('cPhone').value.trim();
-  const email=document.getElementById('cEmail').value.trim();
-  if (!name) { toast('Name is required','error'); return; }
-  if (editingContactId) {
-    await sb.from('contacts').update({name,phone,email}).eq('id', editingContactId);
-    toast('Contact updated!','success');
-  } else {
-    await sb.from('contacts').insert({ id:'c_'+Date.now(), user_id:currentUser.id, name, phone:phone||'', email:email||'' });
-    toast('Contact added! 👤','success');
-  }
+  const name=document.getElementById('cName').value.trim(), phone=document.getElementById('cPhone').value.trim(), email=document.getElementById('cEmail').value.trim();
+  if (!name) { toast('Name required','error'); return; }
+  if (editingContactId) { await sb.from('contacts').update({name,phone,email}).eq('id', editingContactId); toast('Updated!','success'); }
+  else { await sb.from('contacts').insert({id:'c_'+Date.now(),user_id:currentUser.id,name,phone:phone||'',email:email||''}); toast('Contact added!','success'); }
   closeContactModal(); renderPage();
 }
-
 function editContact(id) { openContactModal(id); }
-async function deleteContact(id) {
-  await sb.from('contacts').delete().eq('id', id);
-  toast('Contact removed.','info'); renderPage();
-}
+async function deleteContact(id) { await sb.from('contacts').delete().eq('id', id); toast('Removed.','info'); renderPage(); }
 
 // Contact multiselect
 function toggleContactDrop() { document.getElementById('contactDropdown').classList.toggle('open'); }
@@ -1382,19 +1269,14 @@ document.addEventListener('click', e => { if(!e.target.closest('.contact-select-
 async function renderContactDropdown() {
   const contacts = await getMyContacts();
   const dd=document.getElementById('contactDropdown'); if(!dd) return;
-  if (!contacts.length) { dd.innerHTML=`<div style="padding:14px;font-size:13px;color:var(--textMuted);text-align:center">No contacts yet. <a href="#" onclick="navTo('contacts',null);closeReminderModal()" style="color:var(--blue)">Add contacts →</a></div>`; return; }
-  dd.innerHTML=contacts.map(c=>`
-    <div class="contact-opt ${selectedContactIds.includes(c.id)?'selected':''}" onclick="toggleContactSel('${c.id}')">
-      <div><div class="contact-opt-name">${c.name}</div><div class="contact-opt-detail">${[c.phone,c.email].filter(Boolean).join(' · ')}</div></div>
-      <span style="margin-left:auto">${selectedContactIds.includes(c.id)?'✓':''}</span>
-    </div>`).join('');
+  if (!contacts.length) { dd.innerHTML=`<div style="padding:14px;font-size:13px;color:var(--textMuted);text-align:center">No contacts. <a href="#" onclick="navTo('contacts',null);closeReminderModal()" style="color:var(--blue)">Add →</a></div>`; return; }
+  dd.innerHTML=contacts.map(c=>`<div class="contact-opt ${selectedContactIds.includes(c.id)?'selected':''}" onclick="toggleContactSel('${c.id}')"><div><div class="contact-opt-name">${c.name}</div><div class="contact-opt-detail">${[c.phone,c.email].filter(Boolean).join(' · ')}</div></div><span style="margin-left:auto">${selectedContactIds.includes(c.id)?'✓':''}</span></div>`).join('');
 }
 
 async function toggleContactSel(id) {
   const i=selectedContactIds.indexOf(id);
   if(i>-1) selectedContactIds.splice(i,1); else selectedContactIds.push(id);
   await renderChips(); await renderContactDropdown();
-  // Keep dropdown open so user can select multiple — close on outside click only
 }
 
 async function renderChips() {
@@ -1419,17 +1301,13 @@ function openUserModal() { document.getElementById('userModal').classList.add('o
 function closeUserModal() { document.getElementById('userModal').classList.remove('open'); }
 
 async function saveUser() {
-  const name=document.getElementById('uName').value.trim();
-  const username=document.getElementById('uUsername').value.trim();
-  const password=document.getElementById('uPass').value;
-  const role=document.getElementById('uRole').value;
+  const name=document.getElementById('uName').value.trim(), username=document.getElementById('uUsername').value.trim(), password=document.getElementById('uPass').value, role=document.getElementById('uRole').value;
   if (!name||!username||!password) { toast('All fields required','error'); return; }
   try {
     const exists = await sb.from('users').select('id').eq('username',username).maybeSingle();
     if (exists.data) { toast('Username taken','error'); return; }
     const hashed = await hashPassword(password);
-    const { error } = await sb.from('users').insert({ id:'u_'+Date.now(), username, password: hashed, name, role:role||'user' });
-    if (error) throw error;
+    await sb.from('users').insert({id:'u_'+Date.now(),username,password:hashed,name,role:role||'user'});
     toast('User added!','success'); closeUserModal(); renderPage();
   } catch(e) { toast(e.message,'error'); }
 }
@@ -1449,15 +1327,14 @@ function toast(msg, type='info') {
   const el=document.createElement('div'); el.className=`toast ${type}`;
   el.innerHTML=`<span class="toast-icon">${icons[type]}</span><span class="toast-msg">${msg}</span>`;
   document.getElementById('toasts').appendChild(el);
-  setTimeout(()=>el.remove(),3200);
+  setTimeout(()=>el.remove(),3500);
 }
 
 // ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
-initLocalDB(); // keeps history in localStorage
-// Try restoring session on page load
-document.addEventListener('DOMContentLoaded', tryAutoLogin);
+initLocalDB();
+document.addEventListener('DOMContentLoaded', () => { tryAutoLogin(); tick(); });
 </script>
 </body>
 </html>
